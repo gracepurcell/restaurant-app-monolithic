@@ -4,4 +4,7 @@ server/node_modules
 client/.env
 mobile/.env
 server/.env
+backend/auth/.env
+backend/discounts/.env
+backend/items/.env
 mobile/.expo
