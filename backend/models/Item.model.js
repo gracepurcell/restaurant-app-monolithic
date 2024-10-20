@@ -1,41 +1,25 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../db/index');  // Ensure sequelize is imported
 
-const itemSchema = new mongoose.Schema({
+const Item = sequelize.define('Item', {
   name: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false,
   },
   price: {
-    type: Number,
-    required: true
+    type: DataTypes.FLOAT,
+    allowNull: false,
   },
   description: {
-    type: String
+    type: DataTypes.TEXT,
+    allowNull: true,
   },
-  image: [{
-    type: String
-  }],
-  views: {
-    type: Number,
-    default: 0
-  },
-  ordered: {
-    type: Number,
-    default: 0
-  },
-  availability: {
-    type: Boolean,
-    default: true
-  },
-  dietaryInformation: [{
-    type: String
-  }]
-},
-  {
-    timestamps: true
+  image: {
+    type: DataTypes.STRING,
+    allowNull: true,  // URL of the image stored in Cloudinary or elsewhere
   }
-);
-
-const Item = mongoose.model('Item', itemSchema);
+}, {
+  tableName: 'items'
+});
 
 module.exports = Item;

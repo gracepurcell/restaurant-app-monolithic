@@ -1,20 +1,17 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../db/index');  // Correct import path
 
-const itemSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true,
-    },
-},
-    {
-        timestamps: true
-    }
-);
+const Dietary = sequelize.define('Dietary', {
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  }
+}, {
+  tableName: 'dietaries'
+});
 
-const Item = mongoose.model('Dietary', itemSchema);
-
-module.exports = Item;
+module.exports = Dietary;

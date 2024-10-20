@@ -1,28 +1,22 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../db/index');  // Correct import path
 
-const itemSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    discount: {
-        type: String,
-        required: true,
-    },
-    start: {
-        type: String,
-        required: true,
-    },
-    end: {
-        type: String,
-        required: true,
-    }
-},
-    {
-        timestamps: true
-    }
-);
+const Coupon = sequelize.define('Coupon', {
+  code: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  discount: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
+  },
+  validUntil: {
+    type: DataTypes.DATE,
+    allowNull: true,
+  }
+}, {
+  tableName: 'coupons'
+});
 
-const Item = mongoose.model('Coupons', itemSchema);
-
-module.exports = Item;
+module.exports = Coupon;

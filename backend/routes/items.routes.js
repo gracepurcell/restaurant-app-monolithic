@@ -1,90 +1,60 @@
 const express = require('express');
 const router = express.Router();
+const Item = require('../models/Item.model'); // Ensure the correct model is imported
+const upload = require('../config/cloudinary.config'); // Import the configured upload middleware
 
-const Item = require('../models/Item.model')
 
-
-const fileUploader = require('../config/cloudinary.config')
-
-router.get("/", (req, res) => {
-
-    Item.find().then(items => {
-        res.json(items)
-    }).catch(err => {
-        res.status(400).json(err)
-    })
-
-})
-
-router.get("/:id", (req, res) => {
-
-    const id = req.params.id
-
-    Item.findById(id).then(items => {
-        res.json(items)
-    }).catch(err => {
-        res.status(400).json(err)
-    })
-
-})
-
-router.post("/", fileUploader.single("imagem"), (req, res) => {
-
-    const item = req.body
-
-    const data = req.file.path
-
-    Item.create(item)
-        .then(newItem => {
-            let id = newItem._id;
-            return Item.findByIdAndUpdate(
-                id,
-                { $push: { image: data } }
-            );
-        })
-        .then(updatedItem => {
-            res.json(updatedItem);
-        })
-        .catch(err => {
-            res.status(400).json(err);
-        });
-
-})
-
-router.put("/:id", fileUploader.single("imagem"), (req, res) => {
-    const itemId = req.params.id;
-    const item = req.body;
-
-    if (req.file) {
-        // New file is uploaded, process and update the image URL
-        const imagePath = req.file.path;
-        item.image = [imagePath]; // Assign the updated image path to the image array
-    }
-
-    Item.findByIdAndUpdate(itemId, item, { new: true })
-        .then(updatedItem => {
-            res.json(updatedItem);
-        })
-        .catch(err => {
-            res.status(400).json(err);
-        });
+// GET all items
+router.get('/', (req, res) => {
+    Item.findAll()
+        .then(items => res.json(items))
+        .catch(err => res.status(400).json(err));
 });
 
+// GET an item by ID
+router.get('/:id', (req, res) => {
+    const { id } = req.params;
 
+    Item.findByPk(id)
+        .then(item => res.json(item))
+        .catch(err => res.status(400).json(err));
+});
 
-router.delete("/:id", (req, res) => {
-
-    const id = req.params.id
-
-    Item.findByIdAndDelete(id).then(itemDeleted => {
-        res.json({
-            message: "Item Eliminado",
-            itemDeleted
-        })
-    }).catch(err => {
-        res.status(400).json(err)
+// POST create a new item with image upload to Cloudinary
+router.post('/', upload.single('imagem'), (req, res) => {
+    const { name, price, description, availability, dietaryInformation } = req.body;
+    const fileUrl = req.file.path; // This is the URL of the uploaded image from Cloudinary
+  
+    Item.create({
+      name,
+      price,
+      description,
+      availability,
+      dietaryInformation,
+      image: fileUrl, // Save the Cloudinary image URL in the database
     })
+      .then(newItem => res.json(newItem))
+      .catch(err => res.status(400).json(err));
+  });
 
-})
+// PUT update an item by ID
+router.put('/:id', (req, res) => {
+    const { id } = req.params;
+    const item = req.body;
+
+    Item.update(item, { where: { id } })
+        .then(() => Item.findByPk(id))
+        .then(updatedItem => res.json(updatedItem))
+        .catch(err => res.status(400).json(err));
+});
+
+// DELETE an item by ID
+router.delete('/:id', (req, res) => {
+    const { id } = req.params;
+
+    Item.destroy({ where: { id } })
+        .then(() => res.json({ message: "Item deleted" }))
+        .catch(err => res.status(400).json(err));
+});
 
 module.exports = router;

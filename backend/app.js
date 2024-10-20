@@ -1,3 +1,6 @@
+
+
+
 // ℹ️ Gets access to environment variables/settings
 // https://www.npmjs.com/package/dotenv
 require("dotenv").config();
@@ -11,9 +14,18 @@ const express = require("express");
 const cors = require('cors');
 const app = express();
 
+const sequelize = require("./db");  // Import the `sequelize` instance correctly
+
+
 app.use(cors({
     origin: '*'
 }));
+
+sequelize.sync({ alter: true })
+    .then(() => {
+        console.log('Database & tables synced!');
+    })
+    .catch((error) => console.error('Error syncing database:', error));
 
 
 // ℹ️ This function is getting exported from the config folder. It runs most pieces of middleware

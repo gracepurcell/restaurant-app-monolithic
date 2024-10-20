@@ -1,76 +1,50 @@
 const express = require('express');
 const router = express.Router();
+const Campaign = require('../models/campaigns.model');
 
-const Campaigns = require('../models/campaigns.model')
+// GET all campaigns
+router.get('/', (req, res) => {
+  Campaign.findAll()
+    .then(campaigns => res.json(campaigns))
+    .catch(err => res.status(400).json(err));
+});
 
-// const fileUploader = require('./../config/cloudinary.config')
+// GET a campaign by ID
+router.get('/:id', (req, res) => {
+  const { id } = req.params;
 
-router.get("/", (req, res) => {
+  Campaign.findByPk(id)
+    .then(campaign => res.json(campaign))
+    .catch(err => res.status(400).json(err));
+});
 
-    Campaigns.find().then(campaigns => {
-        res.json(campaigns)
-    }).catch(err => {
-        res.status(400).json(err)
-    })
+// POST create a new campaign
+router.post('/', (req, res) => {
+  const { title, description, startDate, endDate } = req.body;
 
-})
+  Campaign.create({ title, description, startDate, endDate })
+    .then(newCampaign => res.json(newCampaign))
+    .catch(err => res.status(400).json(err));
+});
 
-router.get("/:id", (req, res) => {
+// PUT update a campaign by ID
+router.put('/:id', (req, res) => {
+  const { id } = req.params;
+  const campaign = req.body;
 
-    const id = req.params.id
+  Campaign.update(campaign, { where: { id } })
+    .then(() => Campaign.findByPk(id))
+    .then(updatedCampaign => res.json(updatedCampaign))
+    .catch(err => res.status(400).json(err));
+});
 
-    Campaigns.findById(id).then(campaign => {
-        res.json(campaign)
-    }).catch(err => {
-        res.status(400).json(err)
-    })
+// DELETE a campaign by ID
+router.delete('/:id', (req, res) => {
+  const { id } = req.params;
 
-})
-
-router.post("/", (req, res) => {
-
-    const campaign = req.body
-
-    Campaigns.create(campaign)
-        .then(newCampaign => {
-            let id = newCampaign._id;
-            return Campaigns.findByIdAndUpdate(
-                id,
-            );
-        })
-        .then(updatedCampaign => {
-            res.json(updatedCampaign);
-        })
-        .catch(err => {
-            res.status(400).json(err);
-        });
-
-})
-
-router.put("/:id", (req, res) => {
-
-    const campaign = req.body
-
-    Campaigns.findByIdAndUpdate(campaign._id, campaign, { new: true }).then(newCampaign => {
-        res.json(newCampaign)
-    }).catch(err => {
-        res.status(400).json(err)
-    })
-})
-
-router.delete("/:id", (req, res) => {
-
-    const id = req.params.id
-
-    Campaigns.findByIdAndDelete(id).then(couponDeleted => {
-        res.json({
-            message: "Campaigns Eliminados",
-            couponDeleted
-        })
-    }).catch(err => {
-        res.status(400).json(err)
-    })
-
-})
+  Campaign.destroy({ where: { id } })
+    .then(() => res.json({ message: "Campaign deleted" }))
+    .catch(err => res.status(400).json(err));
+});
 
 module.exports = router;

@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "your_user",
+    "password": "your_password",
+    "database": "flor_de_sal",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "your_user",
+    "password": "your_password",
+    "database": "flor_de_sal_test",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "your_user",
+    "password": "your_password",
+    "database": "flor_de_sal_production",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  }
+}

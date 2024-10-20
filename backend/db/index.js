@@ -1,19 +1,16 @@
-// ℹ️ package responsible to make the connection with mongodb
-// https://www.npmjs.com/package/mongoose
-const mongoose = require("mongoose");
+const { Sequelize } = require('sequelize');
 
-// ℹ️ Sets the MongoDB URI for our app to have access to it.
-// If no env has been set, we dynamically set it to whatever the folder name was upon the creation of the app
+// Load environment variables
+require('dotenv').config();
 
-const MONGO_URI =
-  process.env.MONGODB_URI || "mongodb+srv://dionamite:Dionamite1!@portalformadores.mob88xm.mongodb.net/flor?retryWrites=true&w=majority&appName=PortalFormadores";
+// Initialize Sequelize with PostgreSQL connection details
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  logging: false, // Optional: Disable logging of SQL queries
+});
 
-mongoose
-  .connect(MONGO_URI)
-  .then((x) => {
-    const dbName = x.connections[0].name;
-    console.log(`Connected to Mongo! Database name: "${dbName}"`);
-  })
-  .catch((err) => {
-    console.error("Error connecting to mongo: ", err);
-  });
+sequelize.authenticate()
+  .then(() => console.log('Connected to PostgreSQL!'))
+  .catch(err => console.error('Unable to connect to the database:', err));
+
+module.exports = sequelize;  // Ensure you are exporting the `sequelize` instance

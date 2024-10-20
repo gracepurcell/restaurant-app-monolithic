@@ -37,11 +37,11 @@ function ItemsPage() {
                     </thead>
                     <tbody>
                         {items.map((item) => (
-                            <tr key={item._id} >
+                            <tr key={item.id} >
                                 <td><img src={item.image} width={60} className="images"></img></td>
                                 <td className="w-[20rem]"><Item item={item} /></td>
-                                <td><Link to={`/editItem/${item._id}`} style={{ color: 'black' }}><button className="button-acoes-edit"><FaPen /></button></Link></td>
-                                <td><button className="button-acoes-delete" onClick={() => deleteItem(item._id)}><FaTrashCan /></button></td>
+                                <td><Link to={`/editItem/${item.id}`} style={{ color: 'black' }}><button className="button-acoes-edit"><FaPen /></button></Link></td>
+                                <td><button className="button-acoes-delete" onClick={() => deleteItem(item.id)}><FaTrashCan /></button></td>
                             </tr>
                         ))}
                     </tbody>
