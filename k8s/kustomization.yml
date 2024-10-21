@@ -1,2 +1,5 @@
 resources:
   - client.yml
+  - backend.yml 
+  - db.yml 
+  - secrets.yml

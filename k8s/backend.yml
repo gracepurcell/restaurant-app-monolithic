@@ -17,17 +17,38 @@ spec:
         image: tassianna/restaurant-app-3-tier:backend-postgres
         ports:
         - containerPort: 6001
+        resources:
+            limits:
+              memory: "512M"
+              cpu: "500m"
         env:
         - name: SECRET
           value: "MySecret1!"
+
         - name: DATABASE_URL
-          value: "postgres://admin:Password123@postgres:5432/flor_de_sal"
+          valueFrom:
+            secretKeyRef:
+              key: database_url
+              name: mysecret
+
         - name: CLOUD_NAME
-          value: "drsjloigq"
+          valueFrom:
+            secretKeyRef:
+              key: be_cloud_name
+              name: mysecret
+
         - name: CLOUD_API_KEY
-          value: "926793658896175"
+          valueFrom:
+            secretKeyRef:
+              key: be_cloud_api_key
+              name: mysecret
+
         - name: CLOUD_API_SECRET
-          value: "5QhoDhOiODpETRSYUrRYDzu5tv0"
+          valueFrom:
+            secretKeyRef:
+              key: be_cloud_api_secret
+              name: mysecret
+
         - name: PORT
           value: "6001"
 
