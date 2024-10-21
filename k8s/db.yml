@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: postgres
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: postgres
@@ -21,17 +21,29 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 5432
+        readinessProbe:
+          exec:
+            command:
+            - psql
+            - -U
+            - admin
+            - -d
+            - flor_de_sal
+            - -c
+            - "SELECT 1;"
+          initialDelaySeconds: 15
+          periodSeconds: 10
         env:
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
-              key: mysecret
-              name: postgres_user
+              key: postgres-user
+              name: mysecret
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: mysecret
-              name: postgres_password
+              key: postgres-password
+              name: mysecret
         - name: POSTGRES_DB
           value: flor_de_sal
         volumeMounts:

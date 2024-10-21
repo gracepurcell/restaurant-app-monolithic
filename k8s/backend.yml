@@ -12,6 +12,10 @@ spec:
       labels:
         app: backend
     spec:
+      initContainers:
+      - name: wait-for-first
+        image: busybox
+        command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for postgres-service; sleep 2; done;']
       containers:
       - name: backend
         image: tassianna/restaurant-app-3-tier:backend-postgres
@@ -28,29 +32,35 @@ spec:
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              key: database_url
+              key: database-url
               name: mysecret
 
         - name: CLOUD_NAME
-          valueFrom:
-            secretKeyRef:
-              key: be_cloud_name
-              name: mysecret
+          value: drsjloigq
 
         - name: CLOUD_API_KEY
-          valueFrom:
-            secretKeyRef:
-              key: be_cloud_api_key
-              name: mysecret
+          value: "926793658896175"
 
         - name: CLOUD_API_SECRET
-          valueFrom:
-            secretKeyRef:
-              key: be_cloud_api_secret
-              name: mysecret
+          value: "5QhoDhOiODpETRSYUrRYDzu5tv0"
 
         - name: PORT
           value: "6001"
+
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: postgres-user
+              name: mysecret
+
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres-password
+              name: mysecret
+              
+        - name: POSTGRES_DB
+          value: flor_de_sal
 
 ---
 apiVersion: v1

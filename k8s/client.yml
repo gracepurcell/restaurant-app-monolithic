@@ -34,7 +34,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: client
+    app: client-pod
   ports:
   - port: 5173
     targetPort: 5173
