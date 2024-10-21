@@ -31,8 +31,8 @@ Object.keys(db).forEach(modelName => {
 });
 
 // Define your associations here
-db.Order.belongsToMany(db.Item, { through: 'OrderItems', foreignKey: 'orderId', as: 'items' });
-db.Item.belongsToMany(db.Order, { through: 'OrderItems', foreignKey: 'itemId', as: 'orders' });
+// db.Order.belongsToMany(db.Item, { through: 'OrderItems', foreignKey: 'orderId', as: 'items' });
+// db.Item.belongsToMany(db.Order, { through: 'OrderItems', foreignKey: 'itemId', as: 'orders' });
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
