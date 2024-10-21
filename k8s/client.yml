@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client-pod
+  template:
+    metadata:
+      labels:
+        app: client-pod
+    spec:
+      containers:
+      - name: client-container
+        image: disgraceful/restaurant-app-mono:client-update
+        resources:
+          limits:
+            memory: "512M"
+            cpu: "500m"
+        ports:
+        - containerPort: 5173
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-lb-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: client
+  ports:
+  - port: 5173
+    targetPort: 5173
+
