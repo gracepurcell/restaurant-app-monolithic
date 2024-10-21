@@ -21,9 +21,6 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 5173
-        env:
-        - name: VITE_SERVER_URL
-          value: http://backend-service:6001
 
 ---
 
