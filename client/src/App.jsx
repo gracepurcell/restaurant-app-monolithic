@@ -1,6 +1,7 @@
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 
+
 import HomePage from "./pages/HomePage/HomePage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import SignupPage from "./pages/SignupPage/SignupPage";
@@ -29,6 +30,7 @@ import CampaignsPageList from "./pages/Admin/Campaigns/CampaignsPageList/Campaig
 import EditCampaign from "./pages/Admin/Campaigns/EditCampaign/EditCampaign";
 
 function App() {
+
   return (
     <div className="App">
       <div id="main">
@@ -58,7 +60,7 @@ function App() {
             }
           />
           <Route
-            path="/discounts/coupons"
+            path="/coupons"
             element={
               <IsAdmin>
                 <CouponsPageList />
@@ -98,7 +100,7 @@ function App() {
             }
           />
           <Route
-            path="/discounts/campaigns"
+            path="/campaigns"
             element={
               <IsAdmin>
                 <CampaignsPageList />

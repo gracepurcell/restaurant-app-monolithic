@@ -5,7 +5,7 @@ function Oferta(props) {
     return (<div>
 
 
-        {/* <Link to={`/discounts/campaigns/${props.campaign._id}`}> */}
+        {/* <Link to={`/campaigns/${props.campaign._id}`}> */}
         {props.campaign.name}
         {/* </Link> */}
 

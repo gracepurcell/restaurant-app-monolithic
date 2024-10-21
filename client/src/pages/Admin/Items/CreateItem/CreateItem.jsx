@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const url = process.env.REACT_APP_SERVER_URL || "http://localhost:80"
+const url = import.meta.env.VITE_SERVER_URL || "http://localhost:80"
 
 function CreateItem() {
   const [name, setName] = useState("");
@@ -21,7 +21,7 @@ function CreateItem() {
   useEffect(() => {
     // Fetch dietary information options from the database
     axios
-      .get(`${url}/items/dietary`)
+      .get(`${url}/dietary`)
       .then((response) => {
         setDietaryOptions(response.data);
       })
@@ -94,7 +94,7 @@ function CreateItem() {
     });
 
     axios
-      .post(`${url}/items/items`, requestBody)
+      .post(`${url}/items/`, requestBody)
       .then((response) => {
         if (response.status === 200) {
           console.log(response.data);

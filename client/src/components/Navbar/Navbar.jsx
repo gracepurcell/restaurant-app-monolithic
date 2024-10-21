@@ -22,25 +22,25 @@ function Navbar() {
               <button className="button-menu"> <BiListUl className="icons" /> Items</button>
             </Link>)}
             {isAdmin && (<Link to="/createitem">
-              <button className="button-menu"><BiListPlus className="icons" />Create Item</button>
+              <button className="button-menu"><BiListPlus className="icons" />Criar Item</button>
             </Link>)}
-            {isAdmin && (<Link to="/discounts/coupons">
+            {isAdmin && (<Link to="/coupons">
               <button className="button-menu"><BiSolidDiscount className="icons" />Cupões</button>
             </Link>)}
             {isAdmin && (<Link to="/createcoupon">
-              <button className="button-menu"><BiListPlus className="icons" />Create Coupon</button>
+              <button className="button-menu"><BiListPlus className="icons" />Criar Cupão</button>
             </Link>)}
-            {isAdmin && (<Link to="/discounts/campaigns">
+            {isAdmin && (<Link to="/campaigns">
               <button className="button-menu"><MdCampaign className="icons" />Campanhas</button>
             </Link>)}
             {isAdmin && (<Link to="/createcampaign">
-              <button className="button-menu"><BiListPlus className="icons" />Create Campanhas</button>
+              <button className="button-menu"><BiListPlus className="icons" />Criar Campanha</button>
             </Link>)}
             {isAdmin && (<Link to="/dietary">
               <button className="button-menu"><BiSolidCategoryAlt className="icons" />Categorias</button>
             </Link>)}
             {isAdmin && (<Link to="/createdietary">
-              <button className="button-menu"><BiListPlus className="icons" />Create Categorias</button>
+              <button className="button-menu"><BiListPlus className="icons" />Criar Categoria</button>
             </Link>)}
             <Link to="/profile">
               <button className="button-menu"><BsFillPersonFill className="icons" />Perfil</button>

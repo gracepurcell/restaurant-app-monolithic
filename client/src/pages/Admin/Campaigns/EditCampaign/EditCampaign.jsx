@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
-const url = process.env.REACT_APP_SERVER_URL || "http://localhost:80"
+const url = import.meta.env.VITE_SERVER_URL || "http://localhost:80"
 
 function EditCampaign() {
     const [campaign, setCampaign] = useState("");
@@ -58,7 +58,7 @@ function EditCampaign() {
                 if (response.status === 200) {
                     console.log(response.data);
                 }
-                navigate("/discounts/campaigns");
+                navigate("/campaigns");
             })
             .catch((error) => {
                 console.error(error);
@@ -83,7 +83,7 @@ function EditCampaign() {
                         <p>Data de Expiração</p>
                         <input className="forms m-2" type="date" name="end" value={end} onChange={handleEnd} /><br />
                         {errorMessage && <p className="error-message">{errorMessage}</p>}
-                        <button className="button m-2" type="submit">Edit Campanha</button><Link to={`/discounts/campaigns`}>
+                        <button className="button m-2" type="submit">Edit Campanha</button><Link to={`/campaigns`}>
                             <button className="button cancel m-2">Cancelar</button></Link>
                     </form>
                 </div>

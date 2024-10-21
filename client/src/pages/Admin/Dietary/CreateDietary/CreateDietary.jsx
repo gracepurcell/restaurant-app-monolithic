@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const url = process.env.REACT_APP_SERVER_URL || "http://localhost:80"
+const url = import.meta.env.VITE_SERVER_URL || "http://localhost:80"
 
 function CreateDietary() {
     const [name, setName] = useState("");
@@ -26,11 +26,10 @@ function CreateDietary() {
         const requestBody = { name, description };
 
         axios
-            .post(`${url}/items/dietary`, requestBody)
+            .post(`${url}/dietary`, requestBody)
             .then((response) => {
                 if (response.status === 200) {
                     console.log(response.data);
-                    console.log("Dietary Inserted.");
                     navigate("/dietary");
                 }
             })
@@ -43,7 +42,7 @@ function CreateDietary() {
     return (
         <div className="main">
             <div>
-                <h1>Create Category</h1>
+                <h1>Criar Categoria</h1>
                 <div className="inputwrap">
                     <form onSubmit={ItemhandleSubmit}>
                         <input className="forms mt-4 m-2" type="text" name="name" value={name} placeholder="Nome da Categoria" onChange={handleName} /><br />

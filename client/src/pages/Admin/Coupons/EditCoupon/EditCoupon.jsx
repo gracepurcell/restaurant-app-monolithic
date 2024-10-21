@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
-const url = process.env.REACT_APP_SERVER_URL || "http://localhost:80"
+const url = import.meta.env.VITE_SERVER_URL || "http://localhost:80"
 
 function EditCoupon() {
     const [coupon, setCoupon] = useState("");
@@ -14,7 +14,7 @@ function EditCoupon() {
     const { CouponId } = useParams();
 
     useEffect(() => {
-        axios.get(`${url}/discounts/coupons/${CouponId}`).then((response) => {
+        axios.get(`${url}/coupons/${CouponId}`).then((response) => {
             setCoupon(response.data);
             setName(response.data.name)
             setDiscount(response.data.discount)
@@ -63,7 +63,7 @@ function EditCoupon() {
                 if (response.status === 200) {
                     console.log(response.data);
                 }
-                navigate("/discounts/coupons");
+                navigate("/coupons");
             })
             .catch((error) => {
                 console.error(error);
