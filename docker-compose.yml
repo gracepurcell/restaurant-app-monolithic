@@ -1,7 +1,13 @@
 version: '3.8'
 
 services:
-  # client:
+  client:
+    image: disgraceful/restaurant-app-mono:client
+    container_name: client
+    ports:
+    - 5173:5173
+    networks:
+    - mono
 
   # backend:
 
