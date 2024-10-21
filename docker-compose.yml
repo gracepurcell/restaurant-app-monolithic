@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   client:
-    image: disgraceful/restaurant-app-mono:client
+    image: disgraceful/restaurant-app-mono:client-dev
     container_name: client
     ports:
     - 5173:5173
@@ -10,12 +10,19 @@ services:
     - mono
 
   backend:
-    image: tassianna/restaurant-app-3-tier:backend
+    image: tassianna/restaurant-app-3-tier:backend-postgres
     container_name: backend
     ports:
       - 6001:6001
     networks: 
       - mono
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DB_HOST=postgres   # Add this
+      - DB_PORT=5432       # Add this
+
   
   postgres:
     image: postgres:latest
