@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  # Run only on main branch
     services:
       postgres: 
         image: 'postgres:latest'
@@ -57,6 +58,7 @@ jobs:
 
   dockerize_push_dev:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -77,6 +79,7 @@ jobs:
 
   dockerize_push_deploy:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -97,6 +100,7 @@ jobs:
 
   dockerize_push_backend:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -117,6 +121,7 @@ jobs:
 
   snyk_monitor_dev:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' 
     needs: dockerize_push_dev 
     steps:
       - name: checkout app
@@ -134,6 +139,7 @@ jobs:
       
   snyk_monitor_backend:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' 
     needs: dockerize_push_backend 
     steps:
       - name: checkout app
@@ -148,54 +154,14 @@ jobs:
       - name: Monitor Backend Docker Image with Snyk
         run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions 
 
-  deploy:
+  deploy-to-minikube:
     runs-on: ubuntu-20.04
+    if: github.ref == 'refs/heads/main' 
     needs: [dockerize_push_deploy, dockerize_push_backend]
     steps:
       - name: Checkout app 
         uses: actions/checkout@v4
 
-      # Install conntrack 
-      #- name: Install dependencies
-      #  run: |
-      #    sudo apt-get update
-      #    sudo apt-get install -y conntrack curl git build-essential
-
-     # Clone cri-dockerd repository and build
-      # - name: Install cri-dockerd
-      #   run: |
-      #     git clone https://github.com/Mirantis/cri-dockerd.git
-      #     cd cri-dockerd
-      #     make
-      #     sudo cp cri-dockerd /usr/local/bin/  # Manually copy the built binary to /usr/local/bin
-      #     cd ..
-      #     rm -rf cri-dockerd  # Clean up the repository after installation
-        
-      # # Verify cri-dockerd installation
-      # - name: Verify cri-dockerd
-      #   run: |
-      #     which cri-dockerd || echo "cri-dockerd not installed"
-
-      # # Run cri-dockerd in the background
-      # - name: Start cri-dockerd
-      #   run: |
-      #     sudo cri-dockerd &  # Run cri-dockerd in the background
-      #     sleep 5  # Wait for it to initialize
-
-      # # Setup crictl
-      # - name: Install crictl
-      #   run: |
-      #     curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.31.0/crictl-v1.31.0-linux-amd64.tar.gz
-      #     sudo tar -C /usr/local/bin -xzf crictl-v1.31.0-linux-amd64.tar.gz
-      #     rm crictl-v1.31.0-linux-amd64.tar.gz
-
-      # - name: Setup Minikube
-      #   run: |
-      #     curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-      #     chmod +x minikube
-      #     sudo mv minikube /usr/local/bin/
-      #     minikube start --driver=none
-      
       # Create .minikube and .kube directories
       - name: Create Minikube and Kube Directories
         run: |
@@ -229,4 +195,33 @@ jobs:
           kubectl rollout status deployment/backend-deployment
           kubectl rollout status deployment/postgres
 
+  # deploy-to-eks:
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main' 
+  #   needs: deploy-to-minikube
+  #   steps:
+
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
+
+  #     - name: Update kubeconfig
+  #       run: |
+  #         aws eks update-kubeconfig --name tassi-grace-restaurant-monolithic-medium-cluster --region ${{ secrets.AWS_REGION }}
+
+  #     - name: Deploy to EKS
+  #       run: kubectl apply -k .
+  #       working-directory: ./k8s
       
+  #     - name: Check Status
+  #       run: |
+  #         kubectl rollout status deployment/client-deployment
+  #         kubectl rollout status deployment/backend-deployment
+  #         kubectl rollout status deployment/postgres 
+        
