@@ -1,0 +1,13 @@
+# storageclass-ebs-csi.yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-sc-csi
+provisioner: ebs.csi.aws.com
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+parameters:
+  type: gp3              # EBS volume type: gp2, gp3, io1, io2, etc.
+  fsType: ext4           # File system type
+  iopsPerGB: "10"        # (Optional) Only for io1/io2
+  throughput: "125"      # (Optional) Only for gp3

@@ -49,6 +49,7 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
           name: postgresdata
+          subPath: postgres
       volumes:
       - name: postgresdata
         persistentVolumeClaim:
@@ -64,10 +65,11 @@ metadata:
     app: postgres
 spec:
   accessModes:
-  - ReadWriteMany
+  - ReadWriteOnce
+  storageClassName: ebs-sc-csi
   resources:
     requests:
-      storage: 10Gi
+      storage: 20Gi
 
 
 ---
@@ -78,7 +80,7 @@ metadata:
 spec:
   selector:
     app: postgres
-  type: NodePort
+  type: LoadBalancer
   ports:
   - port: 5432
     targetPort: 5432

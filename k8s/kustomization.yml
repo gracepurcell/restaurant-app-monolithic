@@ -3,3 +3,4 @@ resources:
   - backend.yml 
   - db.yml 
   - secrets.yml
+  - storage-class.yml
