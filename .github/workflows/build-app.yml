@@ -1,0 +1,60 @@
+name: Build Workflow
+
+# Trigger the workflow on push events to the main branch
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    
+
+jobs:
+  build:
+    runs-on: ubuntu
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
+
+      - name: Install Client Dependencies
+        run: npm Install
+        working-directory: ./client
+
+      - name: Install Backend Dependencies
+        run: npm Install
+        working-directory: ./backend
+
+  test:
+    runs-on: ubuntu
+    needs: build
+    steps:
+
+  dockerize:
+    runs-on: ubuntu
+    needs: test
+    steps:
+
+  push:
+    runs-on: ubuntu
+    needs: dockerize
+    steps:
+
+  deploy:
+    runs-on: ubuntu
+    needs: push
+    steps:
+
+
+
+  # checkout the code 
+
+  say_hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Hello World
+        run: echo "Hello ${{ github.actor }}! This is your updated GitHub Actions!"
+      
+      - name: Print Environment Variables
+        run: env
+      
+      - name: Use Secret Message
+        run: echo "The secret message is ${{ secrets.MY_SECRET_MESSAGE }}"
