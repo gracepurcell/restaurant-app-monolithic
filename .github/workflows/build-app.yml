@@ -159,14 +159,20 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y conntrack curl
-          # Install cri-dockerd
-          curl -fsSL https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/install.sh | sudo bash
+          sudo apt-get install -y conntrack curl git build-essential
+
+     # Clone cri-dockerd repository and build
+      - name: Install cri-dockerd
+        run: |
+          git clone https://github.com/Mirantis/cri-dockerd.git
+          cd cri-dockerd
+          sudo make && sudo make install
+          cd ..
+          rm -rf cri-dockerd  # Clean up the repository after installation
         
       # Verify cri-dockerd installation
       - name: Verify cri-dockerd
         run: |
-          # Check if cri-dockerd is installed
           which cri-dockerd || echo "cri-dockerd not installed"
 
       # Run cri-dockerd in the background
