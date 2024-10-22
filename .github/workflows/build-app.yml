@@ -2,16 +2,14 @@ name: Build Workflow
 
 # Trigger the workflow on push events to the main branch
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
     
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  # Run only on main branch
+    # if: github.ref == 'refs/heads/main'  # Run only on main branch
     services:
       postgres: 
         image: 'postgres:latest'
@@ -58,7 +56,7 @@ jobs:
 
   dockerize_push_dev:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  
+    # if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -79,7 +77,7 @@ jobs:
 
   dockerize_push_deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  
+    # if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -100,7 +98,7 @@ jobs:
 
   dockerize_push_backend:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  
+    # if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -121,7 +119,7 @@ jobs:
 
   snyk_monitor_dev:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' 
+    # if: github.ref == 'refs/heads/main' 
     needs: dockerize_push_dev 
     steps:
       - name: checkout app
@@ -139,7 +137,7 @@ jobs:
       
   snyk_monitor_backend:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' 
+    # if: github.ref == 'refs/heads/main' 
     needs: dockerize_push_backend 
     steps:
       - name: checkout app
@@ -156,7 +154,7 @@ jobs:
 
   deploy-to-minikube:
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/main' 
+    # if: github.ref == 'refs/heads/main' 
     needs: [dockerize_push_deploy, dockerize_push_backend]
     steps:
       - name: Checkout app 
