@@ -55,24 +55,6 @@ jobs:
           POSTGRES_USER: ${{secrets.POSTGRES_USER}}
           POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
 
-  test_minikube:
-    runs-on: ubuntu-20.04
-    steps:
-      # Create .minikube and .kube directories
-      - name: Create Minikube and Kube Directories
-        run: |
-          mkdir -p /home/runner/work/_temp/.minikube
-          mkdir -p /home/runner/.kube
-          sudo chown -R $USER /home/runner/work/_temp/.minikube
-          sudo chown -R $USER /home/runner/.kube
-
-      - name: Setup Minikube
-        uses: manusa/actions-setup-minikube@v2.4.2
-        with:
-          minikube version: 'v1.34.0'  
-          kubernetes version: 'v1.24.0'  
-          driver: docker 
-
   dockerize_push_dev:
     runs-on: ubuntu-latest
     steps:
@@ -166,18 +148,18 @@ jobs:
       - name: Monitor Backend Docker Image with Snyk
         run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions 
 
-  # deploy:
-  #   runs-on: ubuntu-20.04
-  #   needs: [dockerize_push_deploy, dockerize_push_backend]
-  #   steps:
-  #     - name: Checkout app 
-  #       uses: actions/checkout@v4
+  deploy:
+    runs-on: ubuntu-20.04
+    needs: [dockerize_push_deploy, dockerize_push_backend]
+    steps:
+      - name: Checkout app 
+        uses: actions/checkout@v4
 
-  #     # Install conntrack 
-  #     - name: Install dependencies
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y conntrack curl git build-essential
+      # Install conntrack 
+      #- name: Install dependencies
+      #  run: |
+      #    sudo apt-get update
+      #    sudo apt-get install -y conntrack curl git build-essential
 
      # Clone cri-dockerd repository and build
       # - name: Install cri-dockerd
@@ -214,29 +196,37 @@ jobs:
       #     sudo mv minikube /usr/local/bin/
       #     minikube start --driver=none
       
-      # - name: Setup Minikube
-      #   uses: manusa/actions-setup-minikube@v2.4.2
-      #   with:
-      #     minikube version: 'v1.34.0'  
-      #     kubernetes version: 'v1.24.0'  
-      #     driver: docker 
+      # Create .minikube and .kube directories
+      - name: Create Minikube and Kube Directories
+        run: |
+          mkdir -p /home/runner/work/_temp/.minikube
+          mkdir -p /home/runner/.kube
+          sudo chown -R $USER /home/runner/work/_temp/.minikube
+          sudo chown -R $USER /home/runner/.kube
+
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.2
+        with:
+          minikube version: 'v1.34.0'  
+          kubernetes version: 'v1.24.0'  
+          driver: docker 
           
-      # - name: Setup kubectl
-      #   uses: azure/setup-kubectl@v3
-      #   with:
-      #     version: 'latest'
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
 
-      # - name: Get Minikube context 
-      #   run: kubectl config use-context minikube
+      - name: Get Minikube context 
+        run: kubectl config use-context minikube
 
-      # - name: Deploy Project to Kubernetes
-      #   run: kubectl apply -k .
-      #   working-directory: ./k8s
+      - name: Deploy Project to Kubernetes
+        run: kubectl apply -k .
+        working-directory: ./k8s
 
-      # - name: Check Status
-      #   run: |
-      #     kubectl rollout status deployment/client-deployment
-      #     kubectl rollout status deployment/backend-deployment
-      #     kubectl rollout status deployment/postgres
+      - name: Check Status
+        run: |
+          kubectl rollout status deployment/client-deployment
+          kubectl rollout status deployment/backend-deployment
+          kubectl rollout status deployment/postgres
 
       
