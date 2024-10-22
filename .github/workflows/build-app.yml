@@ -69,7 +69,7 @@ jobs:
 
       - name: Run Tests for Client
         run: npm run test
-        working-directory: ./frontend
+        working-directory: ./client
 
       - name: Run Tests for Backend
         run: npm run test
