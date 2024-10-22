@@ -15,46 +15,58 @@ jobs:
       - name: checkout app
         uses: actions/checkout@v4
 
+      - name: Setup Node.js for Applications
+        uses: actions/setup-node@v3
+        with: 
+          node-version: '16-slim'
+
       - name: Install Client Dependencies
-        run: npm Install
+        run: npm install
+        working-directory: ./client
+
+      - name: Build Client
+        run: npm run build
         working-directory: ./client
 
       - name: Install Backend Dependencies
-        run: npm Install
+        run: npm install
+        working-directory: ./backend
+
+      - name: Build Backend
+        run: npm run start
         working-directory: ./backend
 
   test:
     runs-on: ubuntu
     needs: build
     steps:
+      - name: checkout app
+        uses: actions/checkout@v4
 
-  dockerize:
-    runs-on: ubuntu
-    needs: test
-    steps:
+      - name: Setup Node.js for Applications
+        uses: actions/setup-node@v3
+        with: 
+          node-version: '16-slim'
 
-  push:
-    runs-on: ubuntu
-    needs: dockerize
-    steps:
+      - name: Run Tests for Client
+        run: npm run test
+        working-directory: ./frontend
 
-  deploy:
-    runs-on: ubuntu
-    needs: push
-    steps:
+      - name: Run Tests for Backend
+        run: npm run test
+        working-directory: ./backend
 
+  # dockerize:
+  #   runs-on: ubuntu
+  #   needs: test
+  #   steps:
 
+  # push:
+  #   runs-on: ubuntu
+  #   needs: dockerize
+  #   steps:
 
-  # checkout the code 
-
-  say_hello:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print Hello World
-        run: echo "Hello ${{ github.actor }}! This is your updated GitHub Actions!"
-      
-      - name: Print Environment Variables
-        run: env
-      
-      - name: Use Secret Message
-        run: echo "The secret message is ${{ secrets.MY_SECRET_MESSAGE }}"
+  # deploy:
+  #   runs-on: ubuntu
+  #   needs: push
+  #   steps:
