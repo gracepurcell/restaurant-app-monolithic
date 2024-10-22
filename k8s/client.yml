@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: client-container
-        image: disgraceful/restaurant-app-mono:client-build-nginx-conf
+        image: tassianna/restaurant-app-3-tier:client-actions
         resources:
           limits:
             memory: "512M"
