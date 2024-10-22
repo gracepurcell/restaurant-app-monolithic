@@ -118,7 +118,6 @@ jobs:
 
   snyk_monitor_dev:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' 
     needs: dockerize_push_dev 
     steps:
       - name: checkout app
@@ -192,8 +191,7 @@ jobs:
 
   deploy-to-eks:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' 
-    needs: deploy-to-minikube
+    needs: dockerize_push_backend
     steps:
 
       - name: Checkout code
