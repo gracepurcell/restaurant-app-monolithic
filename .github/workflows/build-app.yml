@@ -56,7 +56,7 @@ jobs:
           POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
 
   test:
-    runs-on: ubuntu-ubuntu
+    runs-on: ubuntu-latest
     needs: build
     steps:
       - name: checkout app
