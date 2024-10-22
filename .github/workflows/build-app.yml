@@ -166,7 +166,8 @@ jobs:
         run: |
           git clone https://github.com/Mirantis/cri-dockerd.git
           cd cri-dockerd
-          sudo make && sudo make install
+          make
+          sudo cp cri-dockerd /usr/local/bin/  # Manually copy the built binary to /usr/local/bin
           cd ..
           rm -rf cri-dockerd  # Clean up the repository after installation
         
