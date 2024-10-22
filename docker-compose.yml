@@ -30,7 +30,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    image: tassianna/restaurant-app-3-tier:backend-build
+    image: tassianna/restaurant-app-3-tier:backend-start
     container_name: backend
     ports:
       - 6001:6001
