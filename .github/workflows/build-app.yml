@@ -188,11 +188,11 @@ jobs:
         run: kubectl apply -k .
         working-directory: ./k8s
 
-      - name: Check Status
-        run: |
-          kubectl rollout status deployment/client-deployment
-          kubectl rollout status deployment/backend-deployment
-          kubectl rollout status deployment/postgres
+      # - name: Check Status
+      #   run: |
+      #     kubectl rollout status deployment/client-deployment
+      #     kubectl rollout status deployment/backend-deployment
+      #     kubectl rollout status deployment/postgres
 
   deploy-to-eks:
     runs-on: ubuntu-latest
@@ -256,4 +256,7 @@ jobs:
       
       - name: Check Status
         run: kubectl rollout status deployment/client-deployment
+        
+      - name: Output Frontend DNS
+        run: kubectl get services | grep client-lb-svc | awk '{print $4}'
         
