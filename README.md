@@ -45,3 +45,39 @@ PORT=6001
 ```
 VITE_SERVER_URL="http://localhost:6001"
 ```
+
+## UPDATES: since migrating to eks
+```
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"ec2:AttachVolume",
+				"ec2:CreateSnapshot",
+				"ec2:CreateTags",
+				"ec2:CreateVolume",
+				"ec2:DeleteSnapshot",
+				"ec2:DeleteVolume",
+				"ec2:DescribeAvailabilityZones",
+				"ec2:DescribeInstances",
+				"ec2:DescribeSnapshots",
+				"ec2:DescribeTags",
+				"ec2:DescribeVolumes",
+				"ec2:DescribeVolumesModifications",
+				"ec2:DetachVolume",
+				"ec2:ModifyVolume"
+			],
+			"Resource": "*"
+		}
+	]
+}
+```
+
+- create eks cluster
+- upgraded to t2.medium
+- installed csi driver "kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=master""
+- updated user IAM role to include above policy
+
+
