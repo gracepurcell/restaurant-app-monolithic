@@ -61,10 +61,10 @@ jobs:
       # Create .minikube and .kube directories
       - name: Create Minikube and Kube Directories
         run: |
-          mkdir -p $HOME/.minikube
-          mkdir -p $HOME/.kube
-          sudo chown -R $USER $HOME/.minikube
-          sudo chown -R $USER $HOME/.kube
+          mkdir -p /home/runner/work/_temp/.minikube
+          mkdir -p /home/runner/.kube
+          sudo chown -R $USER /home/runner/work/_temp/.minikube
+          sudo chown -R $USER /home/runner/.kube
 
       - name: Setup Minikube
         uses: manusa/actions-setup-minikube@v2.4.2
