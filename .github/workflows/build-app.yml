@@ -242,7 +242,7 @@ jobs:
         working-directory: ./client
       
       - name: Output Frontend DNS
-        run: kubectl get services | grep client-service | awk '{print $4}'
+        run: kubectl get services | grep client-lb-svc | awk '{print $4}'
       
       - name: Cat Dockerfile
         run: cat ./client/Dockerfile
