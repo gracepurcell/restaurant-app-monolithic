@@ -4,9 +4,6 @@ name: Build Workflow
 on:
   pull_request:
     branches: [main]
-    
-env:
-  BACKEND_EXTERNAL_IP: ""
 
 jobs:
 
@@ -49,7 +46,7 @@ jobs:
 
         ## Here get the BE external IP
       - name: Extract the BE Service External IP
-        run: BACKEND_EXTERNAL_IP=$(kubectl get services | grep backend-service | awk '{print $4}'):6001
+        run: echo BACKEND_EXTERNAL_IP=$(kubectl get services | grep backend-service | awk '{print $4}'):6001 >> $GITHUB_ENV
 
         ## Rebuild the Docker image for deploying
       - name: Set up Docker Buildx
@@ -62,14 +59,11 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Output ENV Var incase
-        run: echo $BACKEND_EXTERNAL_IP
-
-      - name: Output DOCKERFILE incase
-        run: cat ./client/Dockerfile EXTERNAL_IP=$BACKEND_EXTERNAL_IP
+        run: echo ${{ env.BACKEND_URL }}
       
       - name: Build and Push Client Image for multiple platforms - Deploy Stage
         run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --build-arg EXTERNAL_IP=$BACKEND_EXTERNAL_IP --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --build-arg EXTERNAL_IP=${{ env.BACKEND_URL }} --push .
         working-directory: ./client
 
         ## Then build and push the image 
