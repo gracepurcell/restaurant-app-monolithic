@@ -149,7 +149,7 @@ jobs:
         run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions 
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [dockerize_push_deploy, dockerize_push_backend]
     steps:
       - name: Checkout app 
