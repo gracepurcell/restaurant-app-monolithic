@@ -9,6 +9,78 @@ env:
   BACKEND_EXTERNAL_IP: ""
 
 jobs:
+
+  deploy-to-eks:
+    runs-on: ubuntu-latest
+    needs: dockerize_push_backend
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name tassi-grace-restaurant-monolithic-medium-cluster --region ${{ secrets.AWS_REGION }}
+
+      - name: Deploy StorageClass
+        run: kubectl apply -f ./k8s/storage-class.yml
+
+      - name: Deploy Secrets
+        run: kubectl apply -f ./k8s/secrets.yml
+
+      - name: Deploy Database
+        run: kubectl apply -f ./k8s/db.yml
+
+      - name: Check Status
+        run: kubectl rollout status deployment/postgres 
+
+      - name: Deploy Backend
+        run: kubectl apply -f ./k8s/backend.yml
+        
+      - name: Check Status
+        run: kubectl rollout status deployment/backend-deployment
+
+        ## Here get the BE external IP
+      - name: Extract the BE Service External IP
+        run: BACKEND_EXTERNAL_IP=$(kubectl get services | grep backend-service | awk '{print $4}'):6001
+
+        ## Rebuild the Docker image for deploying
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2        
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Output ENV Var incase
+        run: echo $BACKEND_EXTERNAL_IP
+
+      - name: Output DOCKERFILE incase
+        run: cat ./client/Dockerfile EXTERNAL_IP=$BACKEND_EXTERNAL_IP
+      
+      - name: Build and Push Client Image for multiple platforms - Deploy Stage
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --build-arg EXTERNAL_IP=$BACKEND_EXTERNAL_IP --push .
+        working-directory: ./client
+
+        ## Then build and push the image 
+      - name: Deploy Frontend
+        run: kubectl apply -f ./k8s/client.yml
+      
+      - name: Check Status
+        run: kubectl rollout status deployment/client-deployment
+        
+      - name: Output Frontend DNS
+        run: kubectl get services | grep client-lb-svc | awk '{print $4}'
   # build:
   #   runs-on: ubuntu-latest
   #   # if: github.ref == 'refs/heads/main'  # Run only on main branch
@@ -194,75 +266,4 @@ jobs:
   #     #     kubectl rollout status deployment/backend-deployment
   #     #     kubectl rollout status deployment/postgres
 
-  deploy-to-eks:
-    runs-on: ubuntu-latest
-    needs: dockerize_push_backend
-    steps:
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig --name tassi-grace-restaurant-monolithic-medium-cluster --region ${{ secrets.AWS_REGION }}
-
-      - name: Deploy StorageClass
-        run: kubectl apply -f ./k8s/storage-class.yml
-
-      - name: Deploy Secrets
-        run: kubectl apply -f ./k8s/secrets.yml
-
-      - name: Deploy Database
-        run: kubectl apply -f ./k8s/db.yml
-
-      - name: Check Status
-        run: kubectl rollout status deployment/postgres 
-
-      - name: Deploy Backend
-        run: kubectl apply -f ./k8s/backend.yml
-        
-      - name: Check Status
-        run: kubectl rollout status deployment/backend-deployment
-
-        ## Here get the BE external IP
-      - name: Extract the BE Service External IP
-        run: BACKEND_EXTERNAL_IP=$(kubectl get services | grep backend-service | awk '{print $4}'):6001
-
-        ## Rebuild the Docker image for deploying
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2        
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Output ENV Var incase
-        run: echo $BACKEND_EXTERNAL_IP
-
-      - name: Output DOCKERFILE incase
-        run: cat ./client/Dockerfile EXTERNAL_IP=$BACKEND_EXTERNAL_IP
-      
-      - name: Build and Push Client Image for multiple platforms - Deploy Stage
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --build-arg EXTERNAL_IP=$BACKEND_EXTERNAL_IP --push .
-        working-directory: ./client
-
-        ## Then build and push the image 
-      - name: Deploy Frontend
-        run: kubectl apply -f ./k8s/client.yml
-      
-      - name: Check Status
-        run: kubectl rollout status deployment/client-deployment
-        
-      - name: Output Frontend DNS
-        run: kubectl get services | grep client-lb-svc | awk '{print $4}'
         
