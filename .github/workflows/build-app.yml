@@ -239,7 +239,7 @@ jobs:
 
       - name: Deploy Frontend
         run: kubectl apply -f client.yml
-        working-directory: ./client
+        working-directory: ./k8s
       
       - name: Output Frontend DNS
         run: kubectl get services | grep client-lb-svc | awk '{print $4}'
