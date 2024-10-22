@@ -155,47 +155,54 @@ jobs:
       - name: Checkout app 
         uses: actions/checkout@v4
 
-      # Install conntrack and cri-dockerd
+      # Install conntrack 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y conntrack curl git build-essential
 
      # Clone cri-dockerd repository and build
-      - name: Install cri-dockerd
-        run: |
-          git clone https://github.com/Mirantis/cri-dockerd.git
-          cd cri-dockerd
-          make
-          sudo cp cri-dockerd /usr/local/bin/  # Manually copy the built binary to /usr/local/bin
-          cd ..
-          rm -rf cri-dockerd  # Clean up the repository after installation
+      # - name: Install cri-dockerd
+      #   run: |
+      #     git clone https://github.com/Mirantis/cri-dockerd.git
+      #     cd cri-dockerd
+      #     make
+      #     sudo cp cri-dockerd /usr/local/bin/  # Manually copy the built binary to /usr/local/bin
+      #     cd ..
+      #     rm -rf cri-dockerd  # Clean up the repository after installation
         
-      # Verify cri-dockerd installation
-      - name: Verify cri-dockerd
-        run: |
-          which cri-dockerd || echo "cri-dockerd not installed"
+      # # Verify cri-dockerd installation
+      # - name: Verify cri-dockerd
+      #   run: |
+      #     which cri-dockerd || echo "cri-dockerd not installed"
 
-      # Run cri-dockerd in the background
-      - name: Start cri-dockerd
-        run: |
-          sudo cri-dockerd &  # Run cri-dockerd in the background
-          sleep 5  # Wait for it to initialize
+      # # Run cri-dockerd in the background
+      # - name: Start cri-dockerd
+      #   run: |
+      #     sudo cri-dockerd &  # Run cri-dockerd in the background
+      #     sleep 5  # Wait for it to initialize
 
-      # Setup crictl
-      - name: Install crictl
-        run: |
-          curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.31.0/crictl-v1.31.0-linux-amd64.tar.gz
-          sudo tar -C /usr/local/bin -xzf crictl-v1.31.0-linux-amd64.tar.gz
-          rm crictl-v1.31.0-linux-amd64.tar.gz
+      # # Setup crictl
+      # - name: Install crictl
+      #   run: |
+      #     curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.31.0/crictl-v1.31.0-linux-amd64.tar.gz
+      #     sudo tar -C /usr/local/bin -xzf crictl-v1.31.0-linux-amd64.tar.gz
+      #     rm crictl-v1.31.0-linux-amd64.tar.gz
 
+      # - name: Setup Minikube
+      #   run: |
+      #     curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+      #     chmod +x minikube
+      #     sudo mv minikube /usr/local/bin/
+      #     minikube start --driver=none
+      
       - name: Setup Minikube
-        run: |
-          curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          chmod +x minikube
-          sudo mv minikube /usr/local/bin/
-          minikube start --driver=none
-
+        uses: manusa/actions-setup-minikube@v2.4.2
+        with:
+          minikube version: 'v1.34.0'  
+          kubernetes version: 'v1.24.0'  
+          driver: docker 
+          
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
         with:
