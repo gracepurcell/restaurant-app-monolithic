@@ -13,4 +13,4 @@ EXPOSE 5173
 #install curl for testing connectivity
 RUN apt-get update && apt-get install -y curl && apt-get clean 
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "build"]

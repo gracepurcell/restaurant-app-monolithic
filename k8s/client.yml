@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: client-container
-        image: disgraceful/restaurant-app-mono:client-update
+        image: disgraceful/restaurant-app-mono:client-build
         resources:
           limits:
             memory: "512M"
