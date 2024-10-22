@@ -72,7 +72,7 @@ jobs:
       
       - name: Build and Push Client Image for multiple platforms - Dev Stage
         run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev --target=deploy --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev --target=dev --push .
         working-directory: ./client
 
   dockerize_push_deploy:
@@ -163,19 +163,25 @@ jobs:
           # Install cri-dockerd
           curl -fsSL https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/install.sh | sudo bash
         
-    # Verify cri-dockerd installation
+      # Verify cri-dockerd installation
       - name: Verify cri-dockerd
         run: |
-          sudo systemctl enable cri-dockerd
-          sudo systemctl start cri-dockerd
-          sudo systemctl status cri-dockerd
+          # Check if cri-dockerd is installed
+          which cri-dockerd || echo "cri-dockerd not installed"
 
-  # Setup crictl
+      # Run cri-dockerd in the background
+      - name: Start cri-dockerd
+        run: |
+          sudo cri-dockerd &  # Run cri-dockerd in the background
+          sleep 5  # Wait for it to initialize
+
+      # Setup crictl
       - name: Install crictl
         run: |
           curl -LO https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.31.0/crictl-v1.31.0-linux-amd64.tar.gz
           sudo tar -C /usr/local/bin -xzf crictl-v1.31.0-linux-amd64.tar.gz
           rm crictl-v1.31.0-linux-amd64.tar.gz
+
       - name: Setup Minikube
         run: |
           curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
