@@ -1,4 +1,3 @@
-ARG EXTERNAL_IP="http://localhost:6001" 
 
 FROM node:16-slim AS base
 WORKDIR /app
@@ -6,13 +5,14 @@ COPY ./package*.json ./
 COPY . .
 RUN npm install
 
-
 FROM base AS dev
 EXPOSE  5173
 CMD ["npm", "run", "dev"]
 
 FROM base AS build
-RUN VITE_SERVER_URL=$EXTERNAL_IP npm run build 
+ARG EXTERNAL_IP
+ENV VITE_SERVER_URL=${EXTERNAL_IP}
+RUN npm run build 
 
 FROM nginx:latest as deploy
 COPY --from=build /app/dist /usr/share/nginx/html
