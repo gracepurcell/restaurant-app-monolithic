@@ -80,6 +80,24 @@ jobs:
           docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions --push .
         working-directory: ./backend
 
+  snyk_monitor:
+    runs-on: ubuntu-latest
+    needs: dockerize_push 
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
+        
+      - name: Set up Snyk
+        uses: snyk/actions/setup@master
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Monitor Client Docker Image with Snyk
+        run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions
+
+      - name: Monitor Backend Docker Image with Snyk
+        run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions
   # deploy:
   #   runs-on: ubuntu
   #   needs: push
