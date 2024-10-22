@@ -196,7 +196,7 @@ jobs:
 
   deploy-to-eks:
     runs-on: ubuntu-latest
-    needs: [dockerize_push_deploy, dockerize_push_backend]
+    needs: dockerize_push_backend
     steps:
 
       - name: Checkout code
@@ -233,7 +233,7 @@ jobs:
 
         ## Here get the BE external IP
       - name: Extract the BE Service External IP
-        run: $BACKEND_EXTERNAL_IP=(kubectl get services | grep backend-service | awk '{print $4}') 
+        run: BACKEND_EXTERNAL_IP=$(kubectl get services | grep backend-service | awk '{print $4}'):6001
 
         ## Rebuild the Docker image for deploying
       - name: Set up Docker Buildx
