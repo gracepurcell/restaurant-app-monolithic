@@ -18,13 +18,13 @@ spec:
         command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for postgres-service; sleep 2; done;']
       containers:
       - name: backend
-        image: tassianna/restaurant-app-3-tier:backend-postgres
+        image: tassianna/restaurant-app-3-tier:backend-build
         ports:
         - containerPort: 6001
         resources:
-            limits:
-              memory: "512M"
-              cpu: "500m"
+          limits:
+            memory: "512M"
+            cpu: "500m"
         env:
         - name: SECRET
           value: "MySecret1!"
@@ -58,7 +58,7 @@ spec:
             secretKeyRef:
               key: postgres-password
               name: mysecret
-              
+
         - name: POSTGRES_DB
           value: flor_de_sal
 

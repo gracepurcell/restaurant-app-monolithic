@@ -19,7 +19,7 @@ services:
       retries: 5
 
   client:
-    image: disgraceful/restaurant-app-mono:client-update
+    image: disgraceful/restaurant-app-mono:client-build
     container_name: client
     ports:
     - 5173:5173
@@ -30,7 +30,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    image: tassianna/restaurant-app-3-tier:backend-postgres
+    image: tassianna/restaurant-app-3-tier:backend-build
     container_name: backend
     ports:
       - 6001:6001
