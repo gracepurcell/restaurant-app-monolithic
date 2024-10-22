@@ -1,4 +1,4 @@
-ARG = EXTERNAL_IP="http://localhost:3001"
+ARG EXTERNAL_IP="http://localhost:3001"
 
 FROM node:16-slim AS base
 WORKDIR /app
