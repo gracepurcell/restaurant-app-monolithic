@@ -46,7 +46,7 @@ jobs:
 
         ## Here get the BE external IP
       - name: Extract the BE Service External IP
-        run: echo BACKEND_URL="http://$(kubectl get services | grep backend-service | awk '{print $4}'):6001" >> $GITHUB_ENV
+        run: echo "BACKEND_URL=$(kubectl get services | grep backend-service | awk '{print $4}'):6001" >> $GITHUB_ENV
 
         ## Rebuild the Docker image for deploying
       - name: Set up Docker Buildx
@@ -63,7 +63,7 @@ jobs:
 
       - name: Modify Dockerfile with External IP
         run: |
-          sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=${{ env.BACKEND_URL }}|" ./client/Dockerfile
+          sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=http://${{ env.BACKEND_URL }}|" ./client/Dockerfile
 
       - name: Cat Dockerfile
         run: cat ./client/Dockerfile
