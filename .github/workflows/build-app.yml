@@ -216,9 +216,9 @@ jobs:
           kubectl apply -f storage-class.yml
         working-directory: ./k8s
       
-      # - name: Check Status
-      #   run: |
-      #     kubectl rollout status deployment/backend-deployment
+      - name: Check Status
+        run: |
+           kubectl rollout status deployment/backend-deployment
       
       - name: Set the Backend External IP as Env Variable
         run: |
