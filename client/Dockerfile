@@ -1,4 +1,4 @@
-ARG EXTERNAL_IP="http://localhost:3001"
+
 
 FROM node:16-slim AS base
 WORKDIR /app
@@ -12,7 +12,10 @@ EXPOSE  5173
 CMD ["npm", "run", "dev"]
 
 FROM base AS build
-RUN VITE_SERVER_URL=$EXTERNAL_IP npm run build 
+# Placeholder for the external IP that sed will replace
+ENV VITE_SERVER_URL="PLACEHOLDER"
+
+RUN npm run build 
 
 FROM nginx:latest as deploy
 COPY --from=build /app/dist /usr/share/nginx/html

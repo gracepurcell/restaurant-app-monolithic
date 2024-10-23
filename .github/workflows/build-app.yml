@@ -7,54 +7,54 @@ on:
   #workflow_dispatch:
 
 env:
-  BACKEND_EXTERNAL_IP: ""
+  BE_IP: ""
 
 jobs:
-  # build:
-  #   runs-on: ubuntu-latest   
-  #   services:
-  #     postgres: 
-  #       image: 'postgres:latest'
-  #       env:
-  #         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  #         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  #         POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-  #       ports:
-  #         - 5432:5432
-  #       options: >-
-  #         --health-cmd="pg_isready -U admin -d flor_de_sal"
-  #         --health-interval=10s
-  #         --health-timeout=5s
-  #         --health-retries=5
+  build:
+    runs-on: ubuntu-latest   
+    services:
+      postgres: 
+        image: 'postgres:latest'
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U admin -d flor_de_sal"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
         
-  #   steps:
-  #     - name: checkout app
-  #       uses: actions/checkout@v4
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
 
-  #     - name: Setup Node.js for Applications
-  #       uses: actions/setup-node@v3
-  #       with: 
-  #         node-version: '16'
+      - name: Setup Node.js for Applications
+        uses: actions/setup-node@v3
+        with: 
+          node-version: '16'
 
-  #     - name: Install Client Dependencies
-  #       run: npm install
-  #       working-directory: ./client
+      - name: Install Client Dependencies
+        run: npm install
+        working-directory: ./client
 
-  #     - name: Build Client
-  #       run: npm run build
-  #       working-directory: ./client
+      - name: Build Client
+        run: npm run build
+        working-directory: ./client
 
-  #     - name: Install Backend Dependencies
-  #       run: npm install
-  #       working-directory: ./backend
+      - name: Install Backend Dependencies
+        run: npm install
+        working-directory: ./backend
 
-  #     - name: Build Backend
-  #       run: nohup npm run start &
-  #       working-directory: ./backend
-  #       env:
-  #         DATABASE_URL: ${{secrets.CI_BUILD_DATABASE_URL}}
-  #         POSTGRES_USER: ${{secrets.POSTGRES_USER}}
-  #         POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+      - name: Build Backend
+        run: nohup npm run start &
+        working-directory: ./backend
+        env:
+          DATABASE_URL: ${{secrets.CI_BUILD_DATABASE_URL}}
+          POSTGRES_USER: ${{secrets.POSTGRES_USER}}
+          POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
 
   # dockerize_push_dev:
   #   runs-on: ubuntu-latest
@@ -96,25 +96,25 @@ jobs:
   #         docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --push .
   #       working-directory: ./client
 
-  # dockerize_push_backend:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: checkout app
-  #       uses: actions/checkout@v4
+  dockerize_push_backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
         
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
       
-  #     - name: Log in to Docker Hub
-  #       uses: docker/login-action@v2        
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2        
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
       
-  #     - name: Build and Push Backend Image for multiple platforms
-  #       run: |
-  #         docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions --push .
-  #       working-directory: ./backend
+      - name: Build and Push Backend Image for multiple platforms
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions --push .
+        working-directory: ./backend
 
   # snyk_monitor_dev:
   #   runs-on: ubuntu-latest
@@ -189,9 +189,9 @@ jobs:
   #         kubectl rollout status deployment/backend-deployment
   #         kubectl rollout status deployment/postgres
 
-    deploy-to-eks:
+  deploy-to-eks:
       runs-on: ubuntu-latest
-      #needs: dockerize_push_backend
+      needs: dockerize_push_backend
       steps:
 
       - name: Checkout code
@@ -200,13 +200,13 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TASSI }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TASSI }}
+          aws-region: ${{ secrets.AWS_REGION_TASSI }}
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --name tassi-grace-restaurant-monolithic-medium-cluster --region ${{ secrets.AWS_REGION }}
+          aws eks update-kubeconfig --name restaurant-app-cluster --region ${{ secrets.AWS_REGION__TASSI }}
 
       - name: Deploy everything except from client
         run: |
@@ -220,8 +220,9 @@ jobs:
         run: |
           kubectl rollout status deployment/backend-deployment
       
-      - name: Extract the BE Service External IP
-        run: BACKEND_EXTERNAL_IP=$(kubectl get services | grep backend-service | awk '{print $4}'):6001
+      - name: Set the Backend External IP as Env Variable
+        run: |
+          echo "BE_IP=$(kubectl get services backend-service | grep backend-service | awk '{print $4}'):6001" >> $GITHUB_ENV
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -231,10 +232,14 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Modify Dockerfile with External IP
+        run: |
+          sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=${{ env.BE_IP }}|" ./client/Dockerfile
 
       - name: Build and Push Client Image for multiple platforms - Deploy Stage
         run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --build-arg EXTERNAL_IP=$BACKEND_EXTERNAL_IP --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-test --target=deploy --push .
         working-directory: ./client
 
       - name: Deploy Frontend
