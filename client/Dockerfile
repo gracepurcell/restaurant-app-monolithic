@@ -1,5 +1,5 @@
 
-FROM node:18-slim AS base
+FROM node:16-slim AS base
 WORKDIR /app
 COPY ./package*.json ./
 COPY . .

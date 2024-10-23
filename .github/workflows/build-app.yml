@@ -67,7 +67,7 @@ jobs:
           context: ./client
           platforms: |
             linux/amd64
-            linus/arm64
+            linux/arm64
           build-args: |
             EXTERNAL_IP=${{ env.BACKEND_URL }}
           target: deploy 
