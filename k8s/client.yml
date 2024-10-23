@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: client-container
-        image: tassianna/restaurant-app-3-tier:client-actions-deploy
+        image: tassianna/restaurant-app-3-tier:client-build-with-arg
         resources:
           limits:
             memory: "512M"

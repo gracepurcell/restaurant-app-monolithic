@@ -63,7 +63,7 @@ jobs:
       
       - name: Build and Push Client Image for multiple platforms - Deploy Stage
         run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --build-arg EXTERNAL_IP=${{ env.BACKEND_URL }} --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-build-with-arg --target=deploy --build-arg EXTERNAL_IP=${{ env.BACKEND_URL }} --push .
         working-directory: ./client
 
         ## Then build and push the image 
@@ -74,10 +74,10 @@ jobs:
         run: kubectl rollout status deployment/client-deployment
 
       - name: Give Service breathing space for DNS
-        run: sleep 15
+        run: sleep 30
 
       - name: Display Logs
-        run: kubectl logs $(kubectl get services | grep backend-service | awk '{print $4}')
+        run: kubectl logs $(kubectl get services | grep client-lb-svc | awk '{print $4}')
 
   # build:
   #   runs-on: ubuntu-latest
@@ -223,45 +223,5 @@ jobs:
   #     - name: Monitor Backend Docker Image with Snyk
   #       run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions 
 
-  # deploy-to-minikube:
-  #   runs-on: ubuntu-20.04
-  #   # if: github.ref == 'refs/heads/main' 
-  #   needs: [dockerize_push_deploy, dockerize_push_backend]
-  #   steps:
-  #     - name: Checkout app 
-  #       uses: actions/checkout@v4
-
-  #     # Create .minikube and .kube directories
-  #     - name: Create Minikube and Kube Directories
-  #       run: |
-  #         mkdir -p /home/runner/work/_temp/.minikube
-  #         mkdir -p /home/runner/.kube
-  #         sudo chown -R $USER /home/runner/work/_temp/.minikube
-  #         sudo chown -R $USER /home/runner/.kube
-
-  #     - name: Setup Minikube
-  #       uses: manusa/actions-setup-minikube@v2.4.2
-  #       with:
-  #         minikube version: 'v1.34.0'  
-  #         kubernetes version: 'v1.24.0'  
-  #         driver: docker 
-          
-  #     - name: Setup kubectl
-  #       uses: azure/setup-kubectl@v3
-  #       with:
-  #         version: 'latest'
-
-  #     - name: Get Minikube context 
-  #       run: kubectl config use-context minikube
-
-  #     - name: Deploy Project to Kubernetes
-  #       run: kubectl apply -k .
-  #       working-directory: ./k8s
-
-  #     # - name: Check Status
-  #     #   run: |
-  #     #     kubectl rollout status deployment/client-deployment
-  #     #     kubectl rollout status deployment/backend-deployment
-  #     #     kubectl rollout status deployment/postgres
 
         
