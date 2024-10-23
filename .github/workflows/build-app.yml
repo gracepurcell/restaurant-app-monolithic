@@ -46,7 +46,7 @@ jobs:
 
         ## Here get the BE external IP
       - name: Extract the BE Service External IP
-        run: echo BACKEND_EXTERNAL_IP=$(kubectl get services | grep backend-service | awk '{print $4}'):6001 >> $GITHUB_ENV
+        run: echo BACKEND_URL="http://$(kubectl get services | grep backend-service | awk '{print $4}'):6001" >> $GITHUB_ENV
 
         ## Rebuild the Docker image for deploying
       - name: Set up Docker Buildx
@@ -63,7 +63,7 @@ jobs:
 
       - name: Modify Dockerfile with External IP
         run: |
-          sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=${{ env.BACKEND_EXTERNAL_IP }}|" ./client/Dockerfile
+          sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=${{ env.BACKEND_URL }}|" ./client/Dockerfile
 
       - name: Cat Dockerfile
         run: cat ./client/Dockerfile
@@ -76,13 +76,8 @@ jobs:
             linux/amd64
             linux/arm64
           target: deploy 
-          tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-build-with-arg
+          tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-build-with-arg-grace
           push: true
-      
-      # - name: Build and Push Client Image for multiple platforms - Deploy Stage
-      #   run: |
-      #     docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-build-with-arg --target=deploy --build-arg EXTERNAL_IP=${{ env.BACKEND_URL }} --push .
-      #   working-directory: ./client
 
         ## Then build and push the image 
       - name: Deploy Frontend
@@ -93,9 +88,6 @@ jobs:
 
       - name: Give Service breathing space for DNS
         run: sleep 30
-
-      - name: Display Logs
-        run: kubectl logs $(kubectl get services | grep client-lb-svc | awk '{print $4}')
 
   # build:
   #   runs-on: ubuntu-latest
