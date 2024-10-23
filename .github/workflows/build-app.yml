@@ -222,7 +222,7 @@ jobs:
       
       - name: Set the Backend External IP as Env Variable
         run: |
-          echo "BE_IP=http://$(kubectl get services backend-service | grep backend-service | awk '{print $4}'):6001" >> $GITHUB_ENV
+          echo "BE_IP=$(kubectl get services backend-service | grep backend-service | awk '{print $4}'):6001" >> $GITHUB_ENV
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -235,7 +235,7 @@ jobs:
       
       - name: Modify Dockerfile with External IP
         run: |
-          sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=${{ env.BE_IP }}|" ./client/Dockerfile
+          sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=http://${{ env.BE_IP }}|" ./client/Dockerfile
 
       - name: Build and Push Client Image for multiple platforms - Deploy Stage
         run: |
