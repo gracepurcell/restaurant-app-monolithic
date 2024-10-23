@@ -65,7 +65,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./client
-          platforms:
+          platforms: |
             linux/amd64
             linus/arm64
           build-args: |
