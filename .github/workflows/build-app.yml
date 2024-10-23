@@ -65,6 +65,9 @@ jobs:
         run: |
           sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=${{ env.BACKEND_EXTERNAL_IP }}|" ./client/Dockerfile
 
+      - name: Cat Dockerfile
+        run: cat ./client/Dockerfile
+
       - name: Test build with props 
         uses: docker/build-push-action@v2
         with:
