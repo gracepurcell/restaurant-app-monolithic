@@ -1,18 +1,20 @@
+
 FROM node:16-slim AS base
 WORKDIR /app
 COPY ./package*.json ./
 COPY . .
 RUN npm install
 
-
 FROM base AS dev
 EXPOSE  5173
 CMD ["npm", "run", "dev"]
 
 FROM base AS build
-RUN npm run build
+ARG EXTERNAL_IP
+ENV VITE_SERVER_URL=${EXTERNAL_IP}
+RUN npm run build 
 
-FROM nginx:latest as deploy
+FROM nginx:latest AS deploy
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 5173

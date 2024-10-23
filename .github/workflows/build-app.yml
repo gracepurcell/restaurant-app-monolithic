@@ -2,16 +2,13 @@ name: Build Workflow
 
 # Trigger the workflow on push events to the main branch
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-    
+  pull_request:
+    branches: [main]
 
 jobs:
+#-------------------------------------------------------------------------------
   build:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  # Run only on main branch
     services:
       postgres: 
         image: 'postgres:latest'
@@ -26,7 +23,6 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-        
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -55,10 +51,12 @@ jobs:
           DATABASE_URL: ${{secrets.CI_BUILD_DATABASE_URL}}
           POSTGRES_USER: ${{secrets.POSTGRES_USER}}
           POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+          
+#-------------------------------------------------------------------------------
 
   dockerize_push_dev:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  
+    # if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -77,30 +75,11 @@ jobs:
           docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev --target=dev --push .
         working-directory: ./client
 
-  dockerize_push_deploy:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  
-    steps:
-      - name: checkout app
-        uses: actions/checkout@v4
-        
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2        
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      
-      - name: Build and Push Client Image for multiple platforms - Deploy Stage
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --push .
-        working-directory: ./client
+#-------------------------------------------------------------------------------
 
   dockerize_push_backend:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  
+    # if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -119,9 +98,11 @@ jobs:
           docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions --push .
         working-directory: ./backend
 
+#-------------------------------------------------------------------------------
+
   snyk_monitor_dev:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' 
+    # if: github.ref == 'refs/heads/main' 
     needs: dockerize_push_dev 
     steps:
       - name: checkout app
@@ -135,11 +116,12 @@ jobs:
 
       - name: Monitor Client Docker Image with Snyk
         run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev
-
       
+#-------------------------------------------------------------------------------
+
   snyk_monitor_backend:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' 
+    # if: github.ref == 'refs/heads/main' 
     needs: dockerize_push_backend 
     steps:
       - name: checkout app
@@ -154,74 +136,89 @@ jobs:
       - name: Monitor Backend Docker Image with Snyk
         run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions 
 
-  deploy-to-minikube:
-    runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/main' 
-    needs: [dockerize_push_deploy, dockerize_push_backend]
+#-------------------------------------------------------------------------------
+
+  deploy-to-eks:
+    runs-on: ubuntu-latest
+    needs: dockerize_push_backend
     steps:
-      - name: Checkout app 
-        uses: actions/checkout@v4
 
-      # Create .minikube and .kube directories
-      - name: Create Minikube and Kube Directories
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
         run: |
-          mkdir -p /home/runner/work/_temp/.minikube
-          mkdir -p /home/runner/.kube
-          sudo chown -R $USER /home/runner/work/_temp/.minikube
-          sudo chown -R $USER /home/runner/.kube
+          aws eks update-kubeconfig --name tassi-grace-restaurant-monolithic-medium-cluster --region ${{ secrets.AWS_REGION }}
 
-      - name: Setup Minikube
-        uses: manusa/actions-setup-minikube@v2.4.2
-        with:
-          minikube version: 'v1.34.0'  
-          kubernetes version: 'v1.24.0'  
-          driver: docker 
-          
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
+      - name: Deploy StorageClass
+        run: kubectl apply -f ./k8s/storage-class.yml
 
-      - name: Get Minikube context 
-        run: kubectl config use-context minikube
+      - name: Deploy Secrets
+        run: kubectl apply -f ./k8s/secrets.yml
 
-      - name: Deploy Project to Kubernetes
-        run: kubectl apply -k .
-        working-directory: ./k8s
+      - name: Deploy Database
+        run: kubectl apply -f ./k8s/db.yml
 
       - name: Check Status
-        run: |
-          kubectl rollout status deployment/client-deployment
-          kubectl rollout status deployment/backend-deployment
-          kubectl rollout status deployment/postgres
+        run: kubectl rollout status deployment/postgres 
 
-  # deploy-to-eks:
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/main' 
-  #   needs: deploy-to-minikube
-  #   steps:
+      - name: Deploy Backend
+        run: kubectl apply -f ./k8s/backend.yml
+        
+      - name: Check Status
+        run: kubectl rollout status deployment/backend-deployment
 
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+        ## Here get the BE external IP
+      - name: Extract the BE Service External IP
+        run: echo "BACKEND_URL=$(kubectl get services | grep backend-service | awk '{print $4}'):6001" >> $GITHUB_ENV
 
-  #     - name: Configure AWS Credentials
-  #       uses: aws-actions/configure-aws-credentials@v1
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
-
-  #     - name: Update kubeconfig
-  #       run: |
-  #         aws eks update-kubeconfig --name tassi-grace-restaurant-monolithic-medium-cluster --region ${{ secrets.AWS_REGION }}
-
-  #     - name: Deploy to EKS
-  #       run: kubectl apply -k .
-  #       working-directory: ./k8s
+        ## Rebuild the Docker image for deploying
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
       
-  #     - name: Check Status
-  #       run: |
-  #         kubectl rollout status deployment/client-deployment
-  #         kubectl rollout status deployment/backend-deployment
-  #         kubectl rollout status deployment/postgres 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2        
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Output ENV Var incase
+        run: echo ${{ env.BACKEND_URL }}
+
+      - name: Modify Dockerfile with External IP
+        run: |
+          sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=http://${{ env.BACKEND_URL }}|" ./client/Dockerfile
+
+      - name: Cat Dockerfile
+        run: cat ./client/Dockerfile
+
+      - name: Test build with props 
+        uses: docker/build-push-action@v2
+        with:
+          context: ./client
+          platforms: |
+            linux/amd64
+            linux/arm64
+          target: deploy 
+          tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-build-with-injection-final
+          push: true
+
+        ## Then build and push the image 
+      - name: Deploy Frontend
+        run: kubectl apply -f ./k8s/client.yml
+      
+      - name: Check Status
+        run: kubectl rollout status deployment/client-deployment
+
+      - name: Give Service breathing space for DNS
+        run: sleep 30
+
+
         
