@@ -72,9 +72,13 @@ jobs:
       
       - name: Check Status
         run: kubectl rollout status deployment/client-deployment
-        
-      - name: Output Frontend DNS
-        run: kubectl get services | grep client-lb-svc | awk '{print $4}'
+
+      - name: Give Service breathing space for DNS
+        run: sleep 15
+
+      - name: Display Logs
+        run: kubectl logs $(kubectl get services | grep backend-service | awk '{print $4}')
+
   # build:
   #   runs-on: ubuntu-latest
   #   # if: github.ref == 'refs/heads/main'  # Run only on main branch
