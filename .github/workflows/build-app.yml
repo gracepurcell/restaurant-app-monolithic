@@ -206,7 +206,7 @@ jobs:
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --name restaurant-app-cluster --region ${{ secrets.AWS_REGION__TASSI }}
+          aws eks update-kubeconfig --name restaurant-app-cluster --region ${{ secrets.AWS_REGION_TASSI }}
 
       - name: Deploy everything except from client
         run: |
