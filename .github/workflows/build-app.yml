@@ -6,10 +6,164 @@ on:
     branches: [main]
 
 jobs:
+#-------------------------------------------------------------------------------
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres: 
+        image: 'postgres:latest'
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U admin -d flor_de_sal"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js for Applications
+        uses: actions/setup-node@v3
+        with: 
+          node-version: '16'
+
+      - name: Install Client Dependencies
+        run: npm install
+        working-directory: ./client
+
+      - name: Build Client
+        run: npm run build
+        working-directory: ./client
+
+      - name: Install Backend Dependencies
+        run: npm install
+        working-directory: ./backend
+
+      - name: Build Backend
+        run: nohup npm run start &
+        working-directory: ./backend
+        env:
+          DATABASE_URL: ${{secrets.CI_BUILD_DATABASE_URL}}
+          POSTGRES_USER: ${{secrets.POSTGRES_USER}}
+          POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+          
+#-------------------------------------------------------------------------------
+
+  dockerize_push_dev:
+    runs-on: ubuntu-latest
+    # if: github.ref == 'refs/heads/main'  
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2        
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and Push Client Image for multiple platforms - Dev Stage
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev --target=dev --push .
+        working-directory: ./client
+
+#-------------------------------------------------------------------------------
+
+  dockerize_push_deploy:
+    runs-on: ubuntu-latest
+    # if: github.ref == 'refs/heads/main'  
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2        
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and Push Client Image for multiple platforms - Deploy Stage
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --push .
+        working-directory: ./client
+
+#-------------------------------------------------------------------------------
+
+  dockerize_push_backend:
+    runs-on: ubuntu-latest
+    # if: github.ref == 'refs/heads/main'  
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2        
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and Push Backend Image for multiple platforms
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions --push .
+        working-directory: ./backend
+
+#-------------------------------------------------------------------------------
+
+  snyk_monitor_dev:
+    runs-on: ubuntu-latest
+    # if: github.ref == 'refs/heads/main' 
+    needs: dockerize_push_dev 
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
+
+      - name: Set up Snyk
+        uses: snyk/actions/setup@master
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Monitor Client Docker Image with Snyk
+        run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev
+      
+#-------------------------------------------------------------------------------
+
+  snyk_monitor_backend:
+    runs-on: ubuntu-latest
+    # if: github.ref == 'refs/heads/main' 
+    needs: dockerize_push_backend 
+    steps:
+      - name: checkout app
+        uses: actions/checkout@v4
+
+      - name: Set up Snyk
+        uses: snyk/actions/setup@master
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+      
+      - name: Monitor Backend Docker Image with Snyk
+        run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions 
+
+#-------------------------------------------------------------------------------
 
   deploy-to-eks:
     runs-on: ubuntu-latest
-    # needs: dockerize_push_backend
+    needs: dockerize_push_backend
     steps:
 
       - name: Checkout code
@@ -76,7 +230,7 @@ jobs:
             linux/amd64
             linux/arm64
           target: deploy 
-          tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-build-with-arg-grace
+          tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-build-with-injection-final
           push: true
 
         ## Then build and push the image 
@@ -88,150 +242,6 @@ jobs:
 
       - name: Give Service breathing space for DNS
         run: sleep 30
-
-  # build:
-  #   runs-on: ubuntu-latest
-  #   # if: github.ref == 'refs/heads/main'  # Run only on main branch
-  #   services:
-  #     postgres: 
-  #       image: 'postgres:latest'
-  #       env:
-  #         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  #         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-  #         POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-  #       ports:
-  #         - 5432:5432
-  #       options: >-
-  #         --health-cmd="pg_isready -U admin -d flor_de_sal"
-  #         --health-interval=10s
-  #         --health-timeout=5s
-  #         --health-retries=5
-        
-  #   steps:
-  #     - name: checkout app
-  #       uses: actions/checkout@v4
-
-  #     - name: Setup Node.js for Applications
-  #       uses: actions/setup-node@v3
-  #       with: 
-  #         node-version: '16'
-
-  #     - name: Install Client Dependencies
-  #       run: npm install
-  #       working-directory: ./client
-
-  #     - name: Build Client
-  #       run: npm run build
-  #       working-directory: ./client
-
-  #     - name: Install Backend Dependencies
-  #       run: npm install
-  #       working-directory: ./backend
-
-  #     - name: Build Backend
-  #       run: nohup npm run start &
-  #       working-directory: ./backend
-  #       env:
-  #         DATABASE_URL: ${{secrets.CI_BUILD_DATABASE_URL}}
-  #         POSTGRES_USER: ${{secrets.POSTGRES_USER}}
-  #         POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
-
-  # dockerize_push_dev:
-  #   runs-on: ubuntu-latest
-  #   # if: github.ref == 'refs/heads/main'  
-  #   steps:
-  #     - name: checkout app
-  #       uses: actions/checkout@v4
-        
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v1
-      
-  #     - name: Log in to Docker Hub
-  #       uses: docker/login-action@v2        
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-      
-  #     - name: Build and Push Client Image for multiple platforms - Dev Stage
-  #       run: |
-  #         docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev --target=dev --push .
-  #       working-directory: ./client
-
-  # dockerize_push_deploy:
-  #   runs-on: ubuntu-latest
-  #   # if: github.ref == 'refs/heads/main'  
-  #   steps:
-  #     - name: checkout app
-  #       uses: actions/checkout@v4
-        
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v1
-      
-  #     - name: Log in to Docker Hub
-  #       uses: docker/login-action@v2        
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-      
-  #     - name: Build and Push Client Image for multiple platforms - Deploy Stage
-  #       run: |
-  #         docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-deploy --target=deploy --push .
-  #       working-directory: ./client
-
-  # dockerize_push_backend:
-  #   runs-on: ubuntu-latest
-  #   # if: github.ref == 'refs/heads/main'  
-  #   steps:
-  #     - name: checkout app
-  #       uses: actions/checkout@v4
-        
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v1
-      
-  #     - name: Log in to Docker Hub
-  #       uses: docker/login-action@v2        
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-      
-  #     - name: Build and Push Backend Image for multiple platforms
-  #       run: |
-  #         docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions --push .
-  #       working-directory: ./backend
-
-  # snyk_monitor_dev:
-  #   runs-on: ubuntu-latest
-  #   # if: github.ref == 'refs/heads/main' 
-  #   needs: dockerize_push_dev 
-  #   steps:
-  #     - name: checkout app
-  #       uses: actions/checkout@v4
-
-  #     - name: Set up Snyk
-  #       uses: snyk/actions/setup@master
-
-  #     - name: Authenticate Snyk
-  #       run: snyk auth ${{ secrets.SNYK_TOKEN }}
-
-  #     - name: Monitor Client Docker Image with Snyk
-  #       run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev
-      
-  # snyk_monitor_backend:
-  #   runs-on: ubuntu-latest
-  #   # if: github.ref == 'refs/heads/main' 
-  #   needs: dockerize_push_backend 
-  #   steps:
-  #     - name: checkout app
-  #       uses: actions/checkout@v4
-
-  #     - name: Set up Snyk
-  #       uses: snyk/actions/setup@master
-
-  #     - name: Authenticate Snyk
-  #       run: snyk auth ${{ secrets.SNYK_TOKEN }}
-      
-  #     - name: Monitor Backend Docker Image with Snyk
-  #       run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions 
 
 
         
