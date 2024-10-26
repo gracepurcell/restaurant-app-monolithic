@@ -40,8 +40,15 @@ spec:
         - -c
         - |
           if [ "$(POD_NAME)" = "postgres-0" ]; then
+            # Initialize the data directory if it's empty
+            if [ ! -s "/var/lib/postgresql/data/PG_VERSION" ]; then
+              echo "Initializing database..."
+              initdb -D /var/lib/postgresql/data
+            fi
+            # Start the master instance
             pg_ctl -D /var/lib/postgresql/data -o "-c listen_addresses='*'" -w start
           else
+            # Replica initialization with pg_basebackup
             until pg_basebackup -h postgres-0.postgres-service -D /var/lib/postgresql/data -U "$(POSTGRES_REPLICATION_USER)" -vP -W; do
               echo "Waiting for master to be ready..."
               sleep 5
