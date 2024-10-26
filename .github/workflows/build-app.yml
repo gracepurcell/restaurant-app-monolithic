@@ -162,7 +162,13 @@ jobs:
 
       # Custom script to confirm presence of Cluster, Driver and Policy
       - name: Confirm presence of EKS Cluster
-        run: ./initEKS.sh tassi-grace-restaurant-monolithic-medium-cluster
+        run: ./initCluster.sh ${{ secrets.AWS_CLUSTER }} ${{ secrets.AWS_REGION }} -y
+
+      - name: Confirm presence of Driver
+        run: ./installDriver.sh
+
+      - name: Confirm presence of Volume Policy
+        run: ./applyVolumePolicy.sh ${{ secrets.AWS_CLUSTER }}
 
       - name: Deploy StorageClass
         run: kubectl apply -f ./k8s/storage-class.yml
