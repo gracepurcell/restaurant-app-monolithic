@@ -1,13 +1,32 @@
 #!/bin/bash
 # Usage: ./script.sh <clusterName> [region] [desired] [min] [max] [-y]
 
+# Initialize variables with defaults
+skip_confirmation=false
+
+# Process the optional -y flag
+while getopts ":y" opt; do
+  case $opt in
+    y) skip_confirmation=true ;;
+    \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
+  esac
+done
+
+# Shift arguments to exclude flags from positional parameters
+shift $((OPTIND - 1))
+
 # Arguments
 clusterName=$1
 region=${2:-"eu-west-1"}         # Default region if not provided
 desired=${3:-6}                  # Default desired nodes if not provided
 min=${4:-3}                      # Default min nodes if not provided
 max=${5:-9}                      # Default max nodes if not provided
-skip_confirmation=false
+
+# Check if cluster name is provided
+if [ -z "$clusterName" ]; then 
+    echo "Please provide a cluster name as the first argument."
+    exit 1
+fi
 
 # Check if EKS cluster exists
 if aws eks describe-cluster --name "$clusterName" --region "$region" >/dev/null 2>&1; then
@@ -17,17 +36,11 @@ else
   
     # Process optional -y flag for skipping confirmation
     for arg in "$@"; do
-    if [[ "$arg" == "-y" ]]; then
-        skip_confirmation=true
-        break
-    fi
+        if [[ "$arg" == "-y" ]]; then
+            skip_confirmation=true
+            break
+        fi
     done
-
-    # Check if cluster name is provided
-    if [ -z "$clusterName" ]; then 
-        echo "Please provide a cluster name as the first argument."
-        exit 1
-    fi
 
     # Confirm settings
     echo
