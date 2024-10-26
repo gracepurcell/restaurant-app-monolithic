@@ -31,7 +31,7 @@ else
     echo "Proceeding with cluster creation..."
     eksctl create cluster --name "$clusterName" --region "$region" --node-type t2.medium --nodes "$desired" --nodes-min "$min" --nodes-max "$max"
 
-    echo "Updating kubeconfig"
-    aws eks update-kubeconfig --region "$region" --name "$clusterName"
 fi
 
+echo "Updating kubeconfig"
+aws eks update-kubeconfig --region "$region" --name "$clusterName"
