@@ -18,8 +18,6 @@ spec:
         image: postgres:latest
         ports:
         - containerPort: 5432
-        securityContext:
-          runAsUser: 1000
         readinessProbe:
           exec:
             command:
@@ -34,32 +32,36 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 10
 
-        # Start-up commands
+        # Start-up commands with initdb check
         command:
         - sh
         - -c
         - |
           if [ "$(POD_NAME)" = "postgres-0" ]; then
-            # Initialize the data directory if it's empty
-            if [ ! -s "/var/lib/postgresql/data/PG_VERSION" ]; then
+            # Check if data directory is initialized
+            if [ ! -f "/var/lib/postgresql/data/PG_VERSION" ]; then
               echo "Initializing database..."
               initdb -D /var/lib/postgresql/data
             fi
-            # Start the master instance
             pg_ctl -D /var/lib/postgresql/data -o "-c listen_addresses='*'" -w start
           else
-            # Replica initialization with pg_basebackup
+            # Replica setup
             until pg_basebackup -h postgres-0.postgres-service -D /var/lib/postgresql/data -U "$(POSTGRES_REPLICATION_USER)" -vP -W; do
               echo "Waiting for master to be ready..."
               sleep 5
             done
             pg_ctl -D /var/lib/postgresql/data -o "-c listen_addresses='*'" -w start
           fi
+
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
           name: postgres-persistent-storage
           subPath: postgres
+
         env:
+        - name: PGDATA
+          value: /var/lib/postgresql/data
+
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
@@ -72,13 +74,12 @@ spec:
               name: mysecret
         - name: POSTGRES_DB
           value: flor_de_sal
-
         - name: POD_NAME
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
         - name: POSTGRES_REPLICATION_USER
-          value: "replicator" # Explicitly set replication user
+          value: "replicator"
         - name: POSTGRES_REPLICATION_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -94,17 +95,3 @@ spec:
       resources:
         requests:
           storage: 20Gi
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres-service
-spec:
-  selector:
-    app: postgres
-  ports:
-  - port: 5432
-    targetPort: 5432
-    name: postgres
-  clusterIP: None #this makes it a headless service
