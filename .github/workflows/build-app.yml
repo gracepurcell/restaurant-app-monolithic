@@ -92,11 +92,17 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      
+
       - name: Build and Push Backend Image for multiple platforms
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions --push .
-        working-directory: ./backend
+        uses: docker/build-push-action@v2
+        with:
+          context: ./backend
+          platforms: |
+            linux/amd64
+            linux/arm64
+          target: deploy 
+          tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions
+          push: true
 
 #-------------------------------------------------------------------------------
 
@@ -153,9 +159,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Update kubeconfig
-        run: |
-          aws eks update-kubeconfig --name tassi-grace-restaurant-monolithic-medium-cluster --region ${{ secrets.AWS_REGION }}
+      # Custom script to confirm presence of Cluster, Driver and Policy
+      - name: Confirm presence of EKS Cluster
+        run: ./initEKS.sh tassi-grace-restaurant-monolithic-medium-cluster
 
       - name: Deploy StorageClass
         run: kubectl apply -f ./k8s/storage-class.yml
@@ -189,17 +195,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Output ENV Var incase
-        run: echo ${{ env.BACKEND_URL }}
-
       - name: Modify Dockerfile with External IP
         run: |
           sed -i "s|ENV VITE_SERVER_URL=.*|ENV VITE_SERVER_URL=http://${{ env.BACKEND_URL }}|" ./client/Dockerfile
 
-      - name: Cat Dockerfile
-        run: cat ./client/Dockerfile
-
-      - name: Test build with props 
+      - name: Build and Push Client Image with updated env var for multiple platforms 
         uses: docker/build-push-action@v2
         with:
           context: ./client
@@ -216,9 +216,6 @@ jobs:
       
       - name: Check Status
         run: kubectl rollout status deployment/client-deployment
-
-      - name: Give Service breathing space for DNS
-        run: sleep 30
 
 
         
