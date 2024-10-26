@@ -13,28 +13,15 @@ spec:
       labels:
         app: postgres
     spec:
-      # securityContext:
-      #   fsGroup: 1000
-      # initContainers:
-      # - name: init-permissions
-      #   image: busybox
-      #   command: ["sh", "-c", "chown -R 1000:1000 /var/lib/postgresql/data"]
-      #   volumeMounts:
-      #   - name: postgres-persistent-storage
-      #     mountPath: /var/lib/postgresql/data
-
       containers:
       - name: postgres
         image: postgres:latest
-        #securityContext:
-        #  runAsUser: 1000 # Matches the 'postgres' user in the official image
         ports:
         - containerPort: 5432
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
           name: new-postgres-persistent-storage
           subPath: postgres
-
         env:
         - name: POSTGRES_USER
           valueFrom:
