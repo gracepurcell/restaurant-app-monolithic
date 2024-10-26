@@ -173,7 +173,7 @@ jobs:
         run: ./installDriver.sh
 
       - name: Confirm presence of Volume Policy
-        run: ./applyVolumePolicy.sh ${{ secrets.AWS_CLUSTER }}
+        run: ./applyVolumePolicies.sh ${{ secrets.AWS_CLUSTER }}
 
       - name: Deploy StorageClass
         run: kubectl apply -f ./k8s/storage-class.yml
