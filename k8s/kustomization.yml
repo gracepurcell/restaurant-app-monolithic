@@ -1,5 +1,5 @@
 resources:
-- client.yml
+#- client.yml
 - backend.yml
 - statefulset-db.yml
 - secrets.yml
