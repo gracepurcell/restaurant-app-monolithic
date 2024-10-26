@@ -12,7 +12,7 @@ accountID=$(aws sts get-caller-identity --query "Account" --output text)
 echo
 
 echo "Getting $clusterName Role name"
-roleName=$(aws eks list-access-entries --cluster-name 3-tier-app | jq -r '.accessEntries[] | select(contains("role")) | split("/")[1]')
+roleName=$(aws eks list-access-entries --cluster-name $clusterName | jq -r '.accessEntries[] | select(contains("role")) | split("/")[1]')
 echo
 
 # Check if the policy already exists

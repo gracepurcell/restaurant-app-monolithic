@@ -1,19 +1,4 @@
 #!/bin/bash
-# Usage: ./script.sh <clusterName> [region] [desired] [min] [max] [-y]
-
-# Initialize variables with defaults
-# skip_confirmation=false
-
-# # Process the optional -y flag
-# while getopts ":y" opt; do
-#   case $opt in
-#     y) skip_confirmation=true ;;
-#     \?) echo "Invalid option: -$OPTARG" >&2; exit 1 ;;
-#   esac
-# done
-
-# # Shift arguments to exclude flags from positional parameters
-# shift $((OPTIND - 1))
 
 # Arguments
 clusterName=$1
@@ -33,14 +18,6 @@ if aws eks describe-cluster --name "$clusterName" --region "$region" >/dev/null 
   echo "EKS cluster '$clusterName' exists in region '$region'."
 else
   echo "EKS cluster '$clusterName' does not exist. Creating cluster ..."
-  
-    # Process optional -y flag for skipping confirmation
-    # for arg in "$@"; do
-    #     if [[ "$arg" == "-y" ]]; then
-    #         skip_confirmation=true
-    #         break
-    #     fi
-    # done
 
     # Confirm settings
     echo
@@ -49,15 +26,6 @@ else
     echo "Desired Nodes: $desired"
     echo "Min Nodes: $min"
     echo "Max Nodes: $max"
-
-    # # Prompt for confirmation if -y flag not set
-    # if [ "$skip_confirmation" = false ]; then
-    #     read -p "Do you want to continue with these settings? (yes/no): " confirmation
-    #     if [[ "$confirmation" != "yes" ]]; then
-    #         echo "Cluster creation cancelled."
-    #         exit 0
-    #     fi
-    # fi
 
     # Proceed with cluster creation
     echo "Proceeding with cluster creation..."
