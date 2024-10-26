@@ -18,6 +18,9 @@ spec:
         image: postgres:latest
         ports:
         - containerPort: 5432
+        securityContext:
+          runAsUser: 1000
+          fsGroup: 1000
         readinessProbe:
           exec:
             command:
@@ -25,10 +28,8 @@ spec:
             - -c
             - |
               if [ "$(POD_NAME)" = "postgres-0" ]; then
-                # Master readiness check
                 psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "SELECT 1;"
               else
-                # Replica readiness check
                 psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "SELECT * FROM pg_stat_replication;"
               fi
           initialDelaySeconds: 15
@@ -40,18 +41,14 @@ spec:
         - -c
         - |
           if [ "$(POD_NAME)" = "postgres-0" ]; then
-            # Initialize as master
             pg_ctl -D /var/lib/postgresql/data -o "-c listen_addresses='*'" -w start
           else
-            # Initialize as replica
             until pg_basebackup -h postgres-0.postgres-service -D /var/lib/postgresql/data -U "$(POSTGRES_REPLICATION_USER)" -vP -W; do
               echo "Waiting for master to be ready..."
               sleep 5
             done
             pg_ctl -D /var/lib/postgresql/data -o "-c listen_addresses='*'" -w start
           fi
-          initialDelaySeconds: 15
-          periodSeconds: 10
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
           name: postgres-persistent-storage
