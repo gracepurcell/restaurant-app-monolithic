@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js for Applications
         uses: actions/setup-node@v3
         with: 
-          node-version: '16'
+          node-version: '18'
 
       - name: Install Client Dependencies
         run: npm install
@@ -56,7 +56,6 @@ jobs:
 
   dockerize_push_dev:
     runs-on: ubuntu-latest
-    # if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -72,14 +71,13 @@ jobs:
       
       - name: Build and Push Client Image for multiple platforms - Dev Stage
         run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev --target=dev --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev-18 --target=dev --push .
         working-directory: ./client
 
 #-------------------------------------------------------------------------------
 
   dockerize_push_backend:
     runs-on: ubuntu-latest
-    # if: github.ref == 'refs/heads/main'  
     steps:
       - name: checkout app
         uses: actions/checkout@v4
@@ -95,14 +93,13 @@ jobs:
       
       - name: Build and Push Backend Image for multiple platforms
         run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions-18 --push .
         working-directory: ./backend
 
 #-------------------------------------------------------------------------------
 
   snyk_monitor_dev:
     runs-on: ubuntu-latest
-    # if: github.ref == 'refs/heads/main' 
     needs: dockerize_push_dev 
     steps:
       - name: checkout app
@@ -115,13 +112,12 @@ jobs:
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
       - name: Monitor Client Docker Image with Snyk
-        run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev
+        run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev-18
       
 #-------------------------------------------------------------------------------
 
   snyk_monitor_backend:
     runs-on: ubuntu-latest
-    # if: github.ref == 'refs/heads/main' 
     needs: dockerize_push_backend 
     steps:
       - name: checkout app
@@ -134,7 +130,7 @@ jobs:
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
       
       - name: Monitor Backend Docker Image with Snyk
-        run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions 
+        run: snyk monitor --docker ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions-18
 
 #-------------------------------------------------------------------------------
 
@@ -149,13 +145,13 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TASSI }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TASSI }}
+          aws-region: ${{ secrets.AWS_REGION_TASSI }}
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --name tassi-grace-restaurant-monolithic-medium-cluster --region ${{ secrets.AWS_REGION }}
+          aws eks update-kubeconfig --name restaurant-app --region ${{ secrets.AWS_REGION_TASSI }}
 
       - name: Deploy StorageClass
         run: kubectl apply -f ./k8s/storage-class.yml
@@ -164,10 +160,10 @@ jobs:
         run: kubectl apply -f ./k8s/secrets.yml
 
       - name: Deploy Database
-        run: kubectl apply -f ./k8s/db.yml
+        run: kubectl apply -f ./k8s/statefulset-db.yml
 
       - name: Check Status
-        run: kubectl rollout status deployment/postgres 
+        run: kubectl rollout status statefulset/postgres 
 
       - name: Deploy Backend
         run: kubectl apply -f ./k8s/backend.yml
@@ -207,7 +203,7 @@ jobs:
             linux/amd64
             linux/arm64
           target: deploy 
-          tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-build-with-injection-final
+          tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-build-with-injection-final-18
           push: true
 
         ## Then build and push the image 
