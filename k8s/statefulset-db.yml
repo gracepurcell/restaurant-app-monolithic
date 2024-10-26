@@ -49,7 +49,6 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 10
 
-        # Start-up commands with initdb check
         command:
         - sh
         - -c
@@ -60,15 +59,10 @@ spec:
               echo "Initializing database..."
               initdb -D /var/lib/postgresql/data
             fi
-            pg_ctl -D /var/lib/postgresql/data -o "-c listen_addresses='*'" -w start
-          else
-            # Replica setup
-            until pg_basebackup -h postgres-0.postgres-service -D /var/lib/postgresql/data -U "$(POSTGRES_REPLICATION_USER)" -vP -W; do
-              echo "Waiting for master to be ready..."
-              sleep 5
-            done
-            pg_ctl -D /var/lib/postgresql/data -o "-c listen_addresses='*'" -w start
           fi
+
+          # Start PostgreSQL in the foreground
+          exec postgres -D /var/lib/postgresql/data -c listen_addresses='*'
 
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
