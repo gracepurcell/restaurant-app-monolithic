@@ -13,18 +13,14 @@ spec:
       labels:
         app: postgres
     spec:
-      securityContext:
-        fsGroup: 1001 # Use the GID to ensure proper permissions on mounted volumes
+
       initContainers:
-      - name: init-postgres
+      - name: init-permissions
         image: postgres:latest
         command: ["sh", "-c"]
-        # This init container creates a non-root user and adjusts permissions on the data directory.
         args:
         - |
-          # Create the non-root user with UID 1001
-          useradd -u 1001 postgres_user && \
-          chown -R 1001:1001 /var/lib/postgresql/data
+          chown -R 999:999 /var/lib/postgresql/data
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
           name: postgres-persistent-storage
@@ -35,7 +31,7 @@ spec:
         image: postgres:latest
         # Set the security context for the main container
         securityContext:
-          runAsUser: 1001 # Use the UID of the created postgres_user
+          runAsUser: 999 # Matches the 'postgres' user in the official image
 
         ports:
         - containerPort: 5432
