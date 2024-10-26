@@ -53,8 +53,8 @@ spec:
         - sh
         - -c
         - |
+          # Check if data directory is initialized
           if [ "$(POD_NAME)" = "postgres-0" ]; then
-            # Check if data directory is initialized
             if [ ! -f "/var/lib/postgresql/data/PG_VERSION" ]; then
               echo "Initializing database..."
               initdb -D /var/lib/postgresql/data
@@ -62,7 +62,8 @@ spec:
           fi
 
           # Start PostgreSQL in the foreground
-          exec postgres -D /var/lib/postgresql/data -c listen_addresses='*'
+          echo "Starting PostgreSQL..."
+          pg_ctl -D /var/lib/postgresql/data -o "-c listen_addresses='*'" -w start
 
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
