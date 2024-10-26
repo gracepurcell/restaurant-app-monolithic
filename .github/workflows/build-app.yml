@@ -167,7 +167,7 @@ jobs:
 
       # Custom script to confirm presence of Cluster, Driver and Policy
       - name: Confirm presence of EKS Cluster
-        run: ./initCluster.sh ${{ secrets.AWS_CLUSTER }} ${{ secrets.AWS_REGION }} -y
+        run: ./initCluster.sh ${{ secrets.AWS_CLUSTER }} ${{ secrets.AWS_REGION }}
 
       - name: Confirm presence of Driver
         run: ./installDriver.sh
