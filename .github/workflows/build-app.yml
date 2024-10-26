@@ -100,7 +100,6 @@ jobs:
           platforms: |
             linux/amd64
             linux/arm64
-          target: deploy 
           tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions
           push: true
 
