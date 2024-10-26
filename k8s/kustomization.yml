@@ -1,6 +1,6 @@
 resources:
-  - client.yml
-  - backend.yml 
-  - db.yml 
-  - secrets.yml
-  - storage-class.yml
+- client.yml
+- backend.yml
+- statefulset-db.yml
+- secrets.yml
+- storage-class.yml

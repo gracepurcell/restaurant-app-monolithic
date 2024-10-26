@@ -69,6 +69,19 @@ spec:
               name: mysecret
         - name: POSTGRES_DB
           value: flor_de_sal
+
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POSTGRES_REPLICATION_USER
+          value: "replicator" # Explicitly set replication user
+        - name: POSTGRES_REPLICATION_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres-replication-password
+              name: mysecret
+
   volumeClaimTemplates:
   - metadata:
       name: postgres-persistent-storage
