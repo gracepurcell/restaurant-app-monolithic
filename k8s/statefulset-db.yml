@@ -13,6 +13,8 @@ spec:
       labels:
         app: postgres
     spec:
+      securityContext:
+        fsGroup: 1001 # Use the GID to ensure proper permissions on mounted volumes
       initContainers:
       - name: init-postgres
         image: postgres:latest
@@ -34,7 +36,6 @@ spec:
         # Set the security context for the main container
         securityContext:
           runAsUser: 1001 # Use the UID of the created postgres_user
-          fsGroup: 1001 # Use the GID to ensure proper permissions on mounted volumes
 
         ports:
         - containerPort: 5432
