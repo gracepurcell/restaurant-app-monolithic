@@ -9,5 +9,5 @@ else
     echo
     echo "Applying AWS EBS CSI driver for PVC volume in EKS"
     echo
-    kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=master"
+    kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=master" --validate=false
 fi
