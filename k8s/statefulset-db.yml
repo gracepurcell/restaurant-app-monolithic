@@ -20,7 +20,6 @@ spec:
         - containerPort: 5432
         securityContext:
           runAsUser: 1000
-          fsGroup: 1000
         readinessProbe:
           exec:
             command:
