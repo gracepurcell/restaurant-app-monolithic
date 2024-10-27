@@ -173,6 +173,7 @@ jobs:
 
       - name: Deploy Kustomization#
         run: kubectl apply -k .
+        working-directory: ./k8s
 
       - name: Check Status
         run: kubectl rollout status statefulset/postgres 
