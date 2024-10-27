@@ -161,15 +161,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: apply config
-        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.AWS_CLUSTER }}
-
-      - name: Remove all deployments first
-        run: |
-          kubectl delete -k .
-          kubectl delete -f client.yml
-        working-directory: ./k8s
-
       # Custom script to confirm presence of Cluster, Driver and Policy
       - name: Confirm presence of EKS Cluster
         run: ./initCluster.sh ${{ secrets.AWS_CLUSTER }} ${{ secrets.AWS_REGION }}
