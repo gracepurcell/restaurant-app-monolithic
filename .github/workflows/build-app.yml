@@ -162,7 +162,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: apply config
-        run: aws eks update-kubeconfig --region "$region" --name "$clusterName"
+        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.AWS_CLUSTER }}
 
       - name: Delete Cluster
         run: eksctl delete cluster --name ${{ secrets.AWS_CLUSTER }} --region ${{ secrets.AWS_REGION }}
