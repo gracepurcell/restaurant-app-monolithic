@@ -13,6 +13,26 @@ spec:
       labels:
         app: postgres
     spec:
+      initContainers:
+      - name: init-replica
+        image: postgres:latest
+        command:
+          - /bin/sh
+          - -c
+          - |
+            if [ "$(hostname)" != "postgres-0" ]; then
+              PGPASSWORD=$POSTGRES_PASSWORD pg_basebackup -h postgres-0.postgres-service -D /var/lib/postgresql/data -U replicator -Fp -Xs -P -R
+            fi
+        env:
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysecret
+                key: postgres-password
+        volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: new-postgres-persistent-storage
+            subPath: postgres
       containers:
       - name: postgres
         image: postgres:latest

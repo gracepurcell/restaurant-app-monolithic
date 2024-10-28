@@ -7,99 +7,99 @@ on:
 
 jobs:
 #-------------------------------------------------------------------------------
-  build:
-    runs-on: ubuntu-latest
-    services:
-      postgres: 
-        image: 'postgres:latest'
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U admin -d flor_de_sal"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-    steps:
-      - name: checkout app
-        uses: actions/checkout@v4
+  # build:
+  #   runs-on: ubuntu-latest
+  #   services:
+  #     postgres: 
+  #       image: 'postgres:latest'
+  #       env:
+  #         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+  #         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+  #         POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+  #       ports:
+  #         - 5432:5432
+  #       options: >-
+  #         --health-cmd="pg_isready -U admin -d flor_de_sal"
+  #         --health-interval=10s
+  #         --health-timeout=5s
+  #         --health-retries=5
+  #   steps:
+  #     - name: checkout app
+  #       uses: actions/checkout@v4
 
-      - name: Setup Node.js for Applications
-        uses: actions/setup-node@v3
-        with: 
-          node-version: '18'
+  #     - name: Setup Node.js for Applications
+  #       uses: actions/setup-node@v3
+  #       with: 
+  #         node-version: '18'
 
-      - name: Install Client Dependencies
-        run: npm install
-        working-directory: ./client
+  #     - name: Install Client Dependencies
+  #       run: npm install
+  #       working-directory: ./client
 
-      - name: Build Client
-        run: npm run build
-        working-directory: ./client
+  #     - name: Build Client
+  #       run: npm run build
+  #       working-directory: ./client
 
-      - name: Install Backend Dependencies
-        run: npm install
-        working-directory: ./backend
+  #     - name: Install Backend Dependencies
+  #       run: npm install
+  #       working-directory: ./backend
 
-      - name: Build Backend
-        run: nohup npm run start &
-        working-directory: ./backend
-        env:
-          DATABASE_URL: ${{secrets.CI_BUILD_DATABASE_URL}}
-          POSTGRES_USER: ${{secrets.POSTGRES_USER}}
-          POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+  #     - name: Build Backend
+  #       run: nohup npm run start &
+  #       working-directory: ./backend
+  #       env:
+  #         DATABASE_URL: ${{secrets.CI_BUILD_DATABASE_URL}}
+  #         POSTGRES_USER: ${{secrets.POSTGRES_USER}}
+  #         POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
           
 # #-------------------------------------------------------------------------------
 
-  dockerize_push_dev:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout app
-        uses: actions/checkout@v4
+  # dockerize_push_dev:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: checkout app
+  #       uses: actions/checkout@v4
         
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v1
       
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2        
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  #     - name: Log in to Docker Hub
+  #       uses: docker/login-action@v2        
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
       
-      - name: Build and Push Client Image for multiple platforms - Dev Stage
-        run: |
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev-18 --target=dev --push .
-        working-directory: ./client
+  #     - name: Build and Push Client Image for multiple platforms - Dev Stage
+  #       run: |
+  #         docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:client-actions-dev-18 --target=dev --push .
+  #       working-directory: ./client
 
 # #-------------------------------------------------------------------------------
 
-  dockerize_push_backend:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout app
-        uses: actions/checkout@v4
+  # dockerize_push_backend:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: checkout app
+  #       uses: actions/checkout@v4
         
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v1
       
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2        
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  #     - name: Log in to Docker Hub
+  #       uses: docker/login-action@v2        
+  #       with:
+  #         username: ${{ secrets.DOCKER_USERNAME }}
+  #         password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Backend Image for multiple platforms
-        uses: docker/build-push-action@v2
-        with:
-          context: ./backend
-          platforms: |
-            linux/amd64
-            linux/arm64
-          tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions-18
-          push: true
+  #     - name: Build and Push Backend Image for multiple platforms
+  #       uses: docker/build-push-action@v2
+  #       with:
+  #         context: ./backend
+  #         platforms: |
+  #           linux/amd64
+  #           linux/arm64
+  #         tags: ${{ secrets.DOCKER_USERNAME }}/restaurant-app-3-tier:backend-actions-18
+  #         push: true
 
 #----------------------------I will let this commented because I get same stupid emails everytime--------------------------------------------
 
@@ -139,41 +139,41 @@ jobs:
 
 #-------------------------------------------------------------------------------
 
-  confirm-cluster:
-    runs-on: ubuntu-latest
-    needs: dockerize_push_backend
-    steps: 
+  # confirm-cluster:
+  #   runs-on: ubuntu-latest
+  #   # needs: dockerize_push_backend
+  #   steps: 
 
-      - name: Checkout code
-        uses: actions/checkout@v2
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
       
-      - name: Set up eksctl
-        run: |
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
+  #     - name: Set up eksctl
+  #       run: |
+  #         curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+  #         sudo mv /tmp/eksctl /usr/local/bin
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
 
-      # Custom script to confirm presence of Cluster, Driver and Policy
-      - name: Confirm presence of EKS Cluster
-        run: ./initCluster.sh ${{ secrets.AWS_CLUSTER }} ${{ secrets.AWS_REGION }}
+  #     # Custom script to confirm presence of Cluster, Driver and Policy
+  #     - name: Confirm presence of EKS Cluster
+  #       run: ./initCluster.sh ${{ secrets.AWS_CLUSTER }} ${{ secrets.AWS_REGION }}
 
-      - name: Confirm presence of Driver
-        run: ./installDriver.sh
+  #     - name: Confirm presence of Driver
+  #       run: ./installDriver.sh
 
-      - name: Confirm presence of Volume Policy
-        run: ./applyVolumePolicies.sh ${{ secrets.AWS_CLUSTER }}
+  #     - name: Confirm presence of Volume Policy
+  #       run: ./applyVolumePolicies.sh ${{ secrets.AWS_CLUSTER }}
 
 #-------------------------------------------------------------------------------
 
   deploy-to-eks:
     runs-on: ubuntu-latest
-    needs: [dockerize_push_backend, confirm-cluster]
+    # needs: [dockerize_push_backend, confirm-cluster]
     steps:
 
       - name: Checkout code
@@ -194,13 +194,33 @@ jobs:
       - name: "Updating kubeconfig"
         run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.AWS_CLUSTER }}
 
-      - name: Deploy Kustomization#
+      - name: Deploy Kustomization
         run: kubectl apply -k .
         working-directory: ./k8s
 
       - name: Check Status
-        run: kubectl rollout status statefulset/postgres 
+        run: kubectl rollout status statefulset/postgres
         
+      - name: Update postgresql.conf for replicating
+        run: |
+          kubectl exec -it postgres-0 -- /bin/bash -c "cat <<EOF >> /var/lib/postgresql/data/postgresql.conf
+          wal_level = replica
+          max_wal_senders = 3
+          hot_standby = on
+          EOF"
+
+      - name: Update postgresql.conf for replicating
+        run: |
+          kubectl exec -it postgres-0 -- /bin/bash -c "cat <<EOF >> /var/lib/postgresql/data/pg_hba.conf.conf
+          host replication replicator 0.0.0.0/0 md5
+          EOF"
+
+      - name: Restart Postgres server
+        run: kubectl exec -it postgres-0 -- /bin/bash -c "su - postgres -c '/usr/lib/postgresql/<version>/bin/pg_ctl -D /var/lib/postgresql/data restart'"
+      
+      - name: Fetch Postgres logs
+        run: kubectl logs postgres-0
+      
       - name: Check Status
         run: kubectl rollout status deployment/backend-deployment
 
