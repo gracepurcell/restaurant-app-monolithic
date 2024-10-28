@@ -200,23 +200,6 @@ jobs:
 
       # - name: Check Status
       #   run: kubectl rollout status statefulset/postgres
-        
-      - name: Create Replicator role
-        run: kubectl exec -i postgres-0 -- /bin/bash -c "psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }} -c \"CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD '${{ secrets.POSTGRES_PASSWORD }}';\""
-
-      - name: Update postgresql.conf for replicating
-        run: |
-          kubectl exec -i postgres-0 -- /bin/bash -c "cat <<EOF >> /var/lib/postgresql/data/postgresql.conf
-          wal_level = replica
-          max_wal_senders = 3
-          hot_standby = on
-          EOF"
-
-      - name: Update postgresql.conf for replicating
-        run: |
-          kubectl exec -i postgres-0 -- /bin/bash -c "cat <<EOF >> /var/lib/postgresql/data/pg_hba.conf.conf
-          host replication replicator 0.0.0.0/0 md5
-          EOF"
 
       - name: Restart Postgres server
         run: kubectl exec -i postgres-0 -- /bin/bash -c "su - postgres -c '/usr/lib/postgresql/<version>/bin/pg_ctl -D /var/lib/postgresql/data restart'"
