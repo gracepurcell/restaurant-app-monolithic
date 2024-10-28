@@ -141,7 +141,7 @@ jobs:
 
   confirm-cluster:
     runs-on: ubuntu-latest
-    # needs: dockerize_push_backend
+    needs: dockerize_push_backend
     steps: 
 
       - name: Checkout code
