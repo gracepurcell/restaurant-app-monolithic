@@ -29,12 +29,6 @@ spec:
         - name: SECRET
           value: "MySecret1!"
 
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              key: database-url
-              name: mysecret
-
         - name: CLOUD_NAME
           value: drsjloigq
 
@@ -61,6 +55,9 @@ spec:
 
         - name: POSTGRES_DB
           value: flor_de_sal
+
+        - name: DATABASE_URL
+          value: "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres-0.postgres-service:5432/$POSTGRES_DB"
 
 ---
 apiVersion: v1
