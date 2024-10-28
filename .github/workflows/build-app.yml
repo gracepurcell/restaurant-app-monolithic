@@ -202,7 +202,7 @@ jobs:
       #   run: kubectl rollout status statefulset/postgres
         
       - name: Create Replicator role
-        run: kubectl exec -it postgres-0 -- /bin/bash -c "psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }} -c \"CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD '${{ secrets.POSTGRES_PASSWORD }}'; \du; \""
+        run: kubectl exec -it postgres-0 -- /bin/bash -c "psql -U ${{ secrets.POSTGRES_USER }} -d ${{ secrets.POSTGRES_DB }} -c \"CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD '${{ secrets.POSTGRES_PASSWORD }}';\""
 
       - name: Update postgresql.conf for replicating
         run: |
