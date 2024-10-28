@@ -14,9 +14,5 @@ RUN npm install
 #install curl for testing connectivity
 RUN apt-get update && apt-get install -y curl && apt-get clean
 
-# RUN apt install postgresql && apt install postgresql-contrib
-
-# RUN psql -h postgres -U admin -W -d flor_de_sal
-
 # Run the development server using npm
 CMD ["npm", "run", "start"]
