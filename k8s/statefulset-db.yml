@@ -24,14 +24,16 @@ spec:
               PGPASSWORD=$POSTGRES_PASSWORD pg_basebackup -h postgres-0.postgres-service -D /var/lib/postgresql/data -U replicator -Fp -Xs -P -R
             else
               psql -U $POSTGRES_USER -d $POSTGRES_DB -c "CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD '$POSTGRES_PASSWORD';"
-              cat <<EOF >> /var/lib/postgresql/data/postgresql.conf
-              wal_level = replica
-              max_wal_senders = 3
-              hot_standby = on
-              EOF
-              cat <<EOF >> /var/lib/postgresql/data/pg_hba.conf
-              host replication replicator 0.0.0.0/0 md5
-              EOF
+              
+              # Update postgresql.conf
+              echo "wal_level = replica" >> /var/lib/postgresql/data/postgresql.conf
+              echo "max_wal_senders = 3" >> /var/lib/postgresql/data/postgresql.conf
+              echo "hot_standby = on" >> /var/lib/postgresql/data/postgresql.conf
+              
+              # Update pg_hba.conf
+              echo "host replication replicator 0.0.0.0/0 md5" >> /var/lib/postgresql/data/pg_hba.conf
+              
+              # Restart PostgreSQL
               su - postgres -c "/usr/lib/postgresql/17/bin/pg_ctl -D /var/lib/postgresql/data restart"
             fi
         env:
