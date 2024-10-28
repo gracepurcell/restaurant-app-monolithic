@@ -57,7 +57,7 @@ spec:
           value: flor_de_sal
 
         - name: DATABASE_URL
-          value: "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres-0.postgres-service:5432/$POSTGRES_DB"
+          value: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-0.postgres-service:5432/${POSTGRES_DB}"
 
 ---
 apiVersion: v1
