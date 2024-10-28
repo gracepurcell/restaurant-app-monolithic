@@ -146,8 +146,6 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          ref: grace-ci
       
       - name: Set up eksctl
         run: |
@@ -180,8 +178,6 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          ref: grace-ci
       
       - name: Set up eksctl
         run: |
@@ -194,6 +190,9 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: "Updating kubeconfig"
+        run: aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.AWS_CLUSTER }}
 
       - name: Deploy Kustomization#
         run: kubectl apply -k .
