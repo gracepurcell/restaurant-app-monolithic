@@ -21,6 +21,7 @@ spec:
           - -c
           - |
             if [ "$(hostname)" != "postgres-0" ]; then
+              rm -rf /var/lib/postgresql/data/*
               PGPASSWORD=$POSTGRES_PASSWORD pg_basebackup -h postgres-0.postgres-service -D /var/lib/postgresql/data -U replicator -Fp -Xs -P -R
             else
               psql -U $POSTGRES_USER -d $POSTGRES_DB -c "CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD '$POSTGRES_PASSWORD';"
