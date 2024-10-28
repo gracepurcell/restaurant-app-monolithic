@@ -11,7 +11,7 @@ CMD ["npm", "run", "dev"]
 
 FROM base AS build
 ARG EXTERNAL_IP
-ENV VITE_SERVER_URL=${EXTERNAL_IP}
+ENV VITE_SERVER_URL=http://af356eafb498f47d9adf3d51d262911e-145506831.eu-west-1.elb.amazonaws.com:6001
 RUN npm run build 
 
 FROM nginx:latest AS deploy
