@@ -201,8 +201,8 @@ jobs:
       # - name: Check Status
       #   run: kubectl rollout status statefulset/postgres
 
-      - name: Restart Postgres server
-        run: kubectl exec -i postgres-0 -- /bin/bash -c "su - postgres -c '/usr/lib/postgresql/<version>/bin/pg_ctl -D /var/lib/postgresql/data restart'"
+      # - name: Restart Postgres server
+      #   run: kubectl exec -i postgres-0 -- /bin/bash -c "su - postgres -c '/usr/lib/postgresql/<version>/bin/pg_ctl -D /var/lib/postgresql/data restart'"
 
       - name: Fetch Postgres logs
         run: kubectl logs postgres-0
